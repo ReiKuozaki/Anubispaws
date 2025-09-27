@@ -2,6 +2,7 @@
 import "./globals.css";
 import React, { ReactNode } from "react";
 import Footer from "../components/footer/footer";
+import { SessionProvider } from "next-auth/react";
 
 export const metadata = {
   title: "AnubisPaws",

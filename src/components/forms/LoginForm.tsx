@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
+import GoogleButton from "../forms/GoogleButton";
+ 
 
 export const LoginForm = () => {
   const [email, setEmail] = useState("");
@@ -8,13 +10,28 @@ export const LoginForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const res = await fetch("http://localhost/anubispaws/api/login.php", {
+
+    // Updated to Next.js API route
+    const res = await fetch("/api/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
     });
+
     const data = await res.json();
-    alert(data.message);
+    if (data.token) {
+      localStorage.setItem("token", data.token);
+      alert("Logged in successfully!");
+      // Optionally redirect to dashboard
+      window.location.href = "/dashboard";
+    } else {
+      alert(data.error || "Login failed");
+    }
+  };
+
+  const handleGoogleLogin = () => {
+    // Redirect to Next.js Google OAuth route
+    window.location.href = "/api/auth/google";
   };
 
   return (
@@ -37,10 +54,12 @@ export const LoginForm = () => {
       />
       <button
         type="submit"
-        className="w-full bg-indigo-600 text-white p-3 rounded-lg hover:bg-indigo-700 transition"
+        className="w-full bg-transparent text-white p-3 rounded-lg border hover:bg-gray-50 hover:text-black duration-200 transition"
       >
         Login
       </button>
+      <div className="w-full text-center">OR</div>
+      <GoogleButton></GoogleButton>
     </form>
   );
 };

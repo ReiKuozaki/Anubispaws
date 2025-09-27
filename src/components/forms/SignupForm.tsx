@@ -2,41 +2,57 @@
 
 import React, { useState } from "react";
 import { PasswordStrength } from "./PasswordStrength";
+import GoogleButton from "../forms/GoogleButton";
 
 export const SignupForm = () => {
   const [nickname, setNickname] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
-  const [verificationCode, setVerificationCode] = useState("");
   const [step, setStep] = useState(1);
 
-  
+  // 👇 new state for verification
+  const [code, setCode] = useState("");
+
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirm) return alert("Passwords do not match");
 
-    const res = await fetch("http://localhost/anubispaws/api/signup.php", {
+    const res = await fetch("/api/signup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ nickname, email, password }),
     });
     const data = await res.json();
-    if (data.success) setStep(2);
+    if (data.success) {
+      setStep(2); // move to verification step
+    } else {
+      alert(data.error || "Signup failed");
+    }
   };
 
-  const handleVerify = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const res = await fetch("http://localhost/anubispaws/api/verify-email.php", {
+  // 👇 new verify function
+  const handleVerify = async () => {
+    const res = await fetch("/api/verify", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, code: verificationCode }),
+      body: JSON.stringify({ email, code }),
     });
     const data = await res.json();
-    if (data.success) alert("Email verified! You can login now");
+    if (data.success) {
+      alert("Email verified! You can now log in.");
+      // maybe redirect to login page
+    } else {
+      alert(data.error || "Invalid or expired code");
+    }
+  };
+
+  const handleGoogleLogin = () => {
+    window.location.href = "/api/auth/google";
   };
 
   return step === 1 ? (
+    // Step 1: Signup
     <form onSubmit={handleSignup} className="space-y-4">
       <input
         type="text"
@@ -71,36 +87,32 @@ export const SignupForm = () => {
         onChange={(e) => setConfirm(e.target.value)}
         required
       />
-      <button type="submit" className="w-full bg-black text-white p-3 rounded-lg">
+      <button
+        type="submit"
+        className="w-full bg-black text-white p-3 rounded-lg hover:bg-gray-50 duration-200 hover:text-black"
+      >
         Sign Up
       </button>
       <div className="w-full text-center">OR</div>
-      <button
-  type="button"
-  onClick={() => window.location.href = "http://localhost/anubispaws/api/google-login.php"}
-  className="w-full flex items-center justify-center gap-2 border p-3 rounded-lg hover:bg-gray-100 transition"
->
-  <img src="/google-icon.svg" alt="Google" className="w-5 h-5" />
-  Continue with Google
-</button>
-
+      <GoogleButton />
     </form>
   ) : (
-    <form onSubmit={handleVerify} className="space-y-4">
-      <p className="text-center text-gray-700">
-        Email verification sent to {email}
-      </p>
+    // Step 2: Verification
+    <div className="space-y-4">
+      <p className="text-center">We sent a verification code to your email</p>
       <input
         type="text"
-        placeholder="Enter code"
+        placeholder="Enter verification code"
         className="w-full p-3 border rounded-lg"
-        value={verificationCode}
-        onChange={(e) => setVerificationCode(e.target.value)}
-        required
+        value={code}
+        onChange={(e) => setCode(e.target.value)}
       />
-      <button type="submit" className="w-full bg-black text-white p-3 rounded-lg">
+      <button
+        onClick={handleVerify}
+        className="w-full bg-black text-white p-3 rounded-lg hover:bg-gray-50 hover:text-black duration-200"
+      >
         Verify Email
       </button>
-    </form>
+    </div>
   );
 };

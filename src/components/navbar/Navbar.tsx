@@ -37,7 +37,6 @@ export default function Navbar() {
             ["Features", "/features"],
             ["Adoption", "/adoption"],
             ["Marketplace", "/marketplace"],
-            ["Appointments", "/appointments"],
             ["About", "/about"],
             ["Contact", "/contact"],
           ].map(([label, href]) => (
@@ -60,27 +59,35 @@ export default function Navbar() {
         <div className="ml-1 flex gap-4 items-center">
           {user ? (
             <div className="flex items-center gap-2">
-              {/* ✅ Show Admin link only for admin */}
-              {user.email === "prajwalbasnet1943@gmail.com" && (
-                <Link
-                  href="/admin"
-                  className="block group-hover:-translate-y-1 mr-9 rounded-full object-contain transition-transform duration-300 ease-in-out hover:scale-110"
-                >
-                  Admin
-                </Link>
-              )}
+              {/* Show Admin link only for admin */}
+              {user.email === "prajwalbasnet1943@gmail.com" &&
+                user.role === "admin" && (
+                  <Link
+                    href="/admin"
+                    className="gap-3 text-white rounded-full object-contain transition-transform duration-300 ease-in-out hover:scale-110 font-semibold mr-4"
+                  >
+                    Admin
+                  </Link>
+                )}
 
               <img
                 src={user.image || "/images/default-avatar.png"}
                 alt={user.name || user.email}
-                className="w-10 h-10 rounded-full object-cover"
+                className="w-10 h-10 rounded-full object-cover cursor-pointer"
+                onClick={() => router.push("/dashboard")} // Redirect when clicking avatar
               />
-              <span className="text-white font-semibold">
+
+              {/* Name clickable */}
+              <span
+                className="text-white font-semibold cursor-pointer hover:underline"
+                onClick={() => router.push("/dashboard")}
+              >
                 {user.name?.split(" ")[0] || user.email}
               </span>
+
               <button
                 onClick={handleLogout}
-                className="ml-2 px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+                className="ml-2 px-3 mr-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
               >
                 Logout
               </button>

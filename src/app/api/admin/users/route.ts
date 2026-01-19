@@ -13,26 +13,29 @@ function verifyAdmin(req: NextRequest) {
   const token = authHeader.split(" ")[1];
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
-    return decoded.email === ADMIN_EMAIL ? decoded : null;
+    return decoded.email === ADMIN_EMAIL && decoded.role === "admin" ? decoded : null;
   } catch {
     return null;
   }
 }
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(req: NextRequest) {
+  console.log("📍 Admin Users GET called");
+  
   const admin = verifyAdmin(req);
   if (!admin) {
+    console.log("❌ Unauthorized");
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
-    await pool.execute("DELETE FROM users WHERE id = ?", [params.id]);
-    return NextResponse.json({ success: true });
+    const [rows] = await pool.execute(
+      "SELECT id, name, email, role, isVerified, created_at FROM users ORDER BY created_at DESC"
+    );
+    console.log("✅ Fetched users:", rows);
+    return NextResponse.json({ users: rows });
   } catch (err) {
-    console.error("Failed to delete user:", err);
+    console.error("❌ Failed to fetch users:", err);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

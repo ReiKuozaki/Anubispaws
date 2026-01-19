@@ -57,8 +57,8 @@ export default function HomePageContent() {
         </div>
 
         <div className="mt-8 flex gap-6 justify-center">
-          <Link href="/appointments">
-            <RippleButton>Appointments</RippleButton>
+          <Link href="/adoption">
+            <RippleButton>Adoptions</RippleButton>
           </Link>
           <Link href="/marketplace">
             <RippleButton>Marketplace</RippleButton>
@@ -161,19 +161,19 @@ export default function HomePageContent() {
               type="content"
             />
             <CaseStudyCard
-              title="Veterinary Care"
-              category="Health"
-              image="/images/dog2.png"
-              logo="/images/logo.png"
-              link="/appointments"
-              type="content"
-            />
-            <CaseStudyCard
               title="Premium Pet Products"
               category="Products"
               image="/images/dog2.png"
               logo="/images/logo.png"
-              link="/appointments"
+              link="/marketplace"
+              type="content"
+            />
+            <CaseStudyCard
+              title="Learn about Pets Features"
+              category="Charactiestics"
+              image="/images/dog2.png"
+              logo="/images/logo.png"
+              link="/features"
               type="content"
             />
           </motion.div>

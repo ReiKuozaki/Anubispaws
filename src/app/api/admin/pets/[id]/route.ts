@@ -13,7 +13,7 @@ function verifyAdmin(req: NextRequest) {
   const token = authHeader.split(" ")[1];
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
-    return decoded.email === ADMIN_EMAIL ? decoded : null;
+    return decoded.email === ADMIN_EMAIL && decoded.role === "admin" ? decoded : null;
   } catch {
     return null;
   }
@@ -21,7 +21,7 @@ function verifyAdmin(req: NextRequest) {
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }  // ✅ params is a Promise
 ) {
   const admin = verifyAdmin(req);
   if (!admin) {
@@ -29,10 +29,14 @@ export async function DELETE(
   }
 
   try {
-    await pool.execute("DELETE FROM pets WHERE id = ?", [params.id]);
+    const { id } = await params;  // ✅ Await params first
+    console.log("🗑️ Deleting pet ID:", id);
+    
+    await pool.execute("DELETE FROM pets WHERE id = ?", [id]);
+    console.log("✅ Pet deleted, ID:", id);
     return NextResponse.json({ success: true });
-  } catch (err) {
-    console.error("Failed to delete pet:", err);
+  } catch (err: any) {
+    console.error("❌ Failed to delete pet:", err.message);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

@@ -1,13 +1,14 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { LightRays } from "@/components/ui/light-rays"
+
 
 export default function AdminPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [activeTab, setActiveTab] = useState<"users" | "pets" | "products" | "appointments">("users");
+  const [activeTab, setActiveTab] = useState<"users" | "pets" | "products" | "orders" | "adoptions">("users");
 
   useEffect(() => {
     const checkAdmin = async () => {
@@ -39,7 +40,6 @@ export default function AdminPage() {
 
     checkAdmin();
   }, [router]);
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
@@ -51,11 +51,13 @@ export default function AdminPage() {
   if (!isAdmin) return null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 pt-32 pb-16 px-4">
+    <div className="min-h-screen via-purple-900 to-gray-900 pt-32 pb-16 px-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-5xl font-bold text-white mb-2">Admin Dashboard</h1>
+          <h1 className="text-5xl font-bold text-white mb-2">
+            Admin Dashboard
+          </h1>
           <p className="text-gray-400">Manage your pet care platform</p>
         </div>
 
@@ -65,7 +67,8 @@ export default function AdminPage() {
             { id: "users", label: "Users", icon: "👥" },
             { id: "pets", label: "Pet Adoptions", icon: "🐾" },
             { id: "products", label: "Products", icon: "🛍️" },
-            { id: "appointments", label: "Appointments", icon: "📅" },
+            { id: "orders", label: "Orders", icon: "📦" },
+            { id: "adoptions", label: "Adoption Requests", icon: "🏠" },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -87,9 +90,11 @@ export default function AdminPage() {
           {activeTab === "users" && <UsersManager />}
           {activeTab === "pets" && <PetsManager />}
           {activeTab === "products" && <ProductsManager />}
-          {activeTab === "appointments" && <AppointmentsManager />}
+          {activeTab === "orders" && <OrdersManager />}
         </div>
       </div>
+
+      <LightRays />
     </div>
   );
 }
@@ -109,7 +114,11 @@ function UsersManager() {
       const res = await fetch("/api/admin/users", {
         headers: { Authorization: `Bearer ${token}` },
       });
+      
+      console.log("Users API response status:", res.status);
       const data = await res.json();
+      console.log("Users data:", data);
+      
       setUsers(data.users || []);
     } catch (err) {
       console.error("Failed to fetch users:", err);
@@ -140,6 +149,10 @@ function UsersManager() {
   };
 
   if (loading) return <div className="text-white text-center">Loading users...</div>;
+
+  if (users.length === 0) {
+    return <div className="text-white text-center">No users found</div>;
+  }
 
   return (
     <div>
@@ -195,6 +208,19 @@ function UsersManager() {
 function PetsManager() {
   const [pets, setPets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    species: "dog",
+    breed: "",
+    age: "1",
+    gender: "male",
+    description: "",
+    status: "available",
+    image_url: "",
+    price: "0", // ✅ FIX
+  });
+
 
   useEffect(() => {
     fetchPets();
@@ -215,24 +241,81 @@ function PetsManager() {
     }
   };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch("/api/admin/pets", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          species: formData.species,
+          breed: formData.breed,
+          age: parseInt(formData.age), // ✅ Convert to number
+          gender: formData.gender,
+          description: formData.description,
+          status: formData.status,
+          image_url: formData.image_url,
+          price: parseInt(formData.price), // ✅ Include image_url
+        }),
+      });
+
+      if (res.ok) {
+        alert("Pet added successfully!");
+        setShowAddForm(false);
+        setFormData({
+          name: "",
+          species: "dog",
+          breed: "",
+          age: "1",
+          gender: "male",
+          description: "",
+          status: "available",
+          image_url: "",
+          price: "0", // ✅ FIX
+        });
+
+        fetchPets();
+      } else {
+        const errorData = await res.json();
+        alert("Failed to add pet: " + (errorData.error || "Unknown error"));
+      }
+    } catch (err) {
+      console.error("Add error:", err);
+      alert("Error adding pet");
+    }
+  };
+
   const deletePet = async (id: number) => {
     if (!confirm("Are you sure you want to delete this pet listing?")) return;
 
     try {
       const token = localStorage.getItem("token");
+      console.log("🗑️ Deleting pet ID:", id);
+      
       const res = await fetch(`/api/admin/pets/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
 
+      console.log("Delete response status:", res.status);
+
       if (res.ok) {
         alert("Pet listing deleted successfully");
         fetchPets();
       } else {
-        alert("Failed to delete pet listing");
+        const error = await res.json();
+        console.error("Delete error:", error);
+        alert("Failed to delete pet listing: " + (error.error || "Unknown error"));
       }
     } catch (err) {
       console.error("Delete error:", err);
+      alert("Error deleting pet");
     }
   };
 
@@ -240,28 +323,209 @@ function PetsManager() {
 
   return (
     <div>
-      <h2 className="text-3xl font-bold text-white mb-6">Pet Adoptions Management</h2>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-3xl font-bold text-white">
+          Pet Adoptions Management
+        </h2>
+        <button
+          onClick={() => setShowAddForm(!showAddForm)}
+          className="px-6 py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold transition"
+        >
+          {showAddForm ? "Cancel" : "+ Add New Pet"}
+        </button>
+      </div>
+
+      {/* Add Form */}
+      {showAddForm && (
+        <form
+          onSubmit={handleSubmit}
+          className="bg-white/5 p-6 rounded-lg mb-6"
+        >
+          {/* Image Preview */}
+          {formData.image_url && (
+            <div className="mb-4 flex justify-center">
+              <img
+                src={formData.image_url}
+                alt="Preview"
+                className="w-48 h-48 object-cover rounded-lg"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = "none";
+                }}
+              />
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <input
+              type="text"
+              placeholder="Pet Name"
+              value={formData.name}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
+              className="p-3 rounded bg-white/10 text-white border border-white/20"
+              required
+            />
+
+            <select
+              value={formData.species}
+              onChange={(e) =>
+                setFormData({ ...formData, species: e.target.value })
+              }
+              className="p-3 rounded bg-white/10 text-white border border-white/20"
+            >
+              <option value="dog">Dog</option>
+              <option value="cat">Cat</option>
+              <option value="bird">Bird</option>
+              <option value="rabbit">Rabbit</option>
+              <option value="hamster">Hamster</option>
+              <option value="other">Other</option>
+            </select>
+
+            <input
+              type="text"
+              placeholder="Breed"
+              value={formData.breed}
+              onChange={(e) =>
+                setFormData({ ...formData, breed: e.target.value })
+              }
+              className="p-3 rounded bg-white/10 text-white border border-white/20"
+              required
+            />
+
+            <input
+              type="number"
+              placeholder="Age"
+              value={formData.age}
+              onChange={(e) =>
+                setFormData({ ...formData, age: e.target.value })
+              }
+              className="p-3 rounded bg-white/10 text-white border border-white/20"
+              min="0"
+              required
+            />
+            <input
+              type="number"
+              placeholder="Adoption Price (NPR)"
+              value={formData.price}
+              onChange={(e) =>
+                setFormData({ ...formData, price: e.target.value })
+              }
+              className="p-3 rounded bg-white/10 text-white border border-white/20"
+              min="1"
+              required
+            />
+
+            <select
+              value={formData.gender}
+              onChange={(e) =>
+                setFormData({ ...formData, gender: e.target.value })
+              }
+              className="p-3 rounded bg-white/10 text-white border border-white/20"
+            >
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+            </select>
+
+            <select
+              value={formData.status}
+              onChange={(e) =>
+                setFormData({ ...formData, status: e.target.value })
+              }
+              className="p-3 rounded bg-white/10 text-white border border-white/20"
+            >
+              <option value="available">Available</option>
+              <option value="adopted">Adopted</option>
+              <option value="pending">Pending</option>
+            </select>
+          </div>
+
+          {/* Image URL Input */}
+          <input
+            type="url"
+            placeholder="Image URL (e.g., https://example.com/dog.jpg)"
+            value={formData.image_url}
+            onChange={(e) =>
+              setFormData({ ...formData, image_url: e.target.value })
+            }
+            className="w-full p-3 rounded bg-white/10 text-white border border-white/20 mt-4"
+          />
+          <p className="text-gray-400 text-sm mt-1">
+            💡 Tip: Upload your image to{" "}
+            <a
+              href="https://imgur.com"
+              target="_blank"
+              className="text-blue-400 underline"
+            >
+              Imgur
+            </a>{" "}
+            or use a direct image URL
+          </p>
+
+          <textarea
+            placeholder="Description"
+            value={formData.description}
+            onChange={(e) =>
+              setFormData({ ...formData, description: e.target.value })
+            }
+            className="w-full p-3 rounded bg-white/10 text-white border border-white/20 mt-4"
+            rows={3}
+          />
+
+          <button
+            type="submit"
+            className="mt-4 px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition"
+          >
+            Add Pet
+          </button>
+        </form>
+      )}
+
+      {/* Pets Table */}
       <div className="overflow-x-auto">
         <table className="w-full text-white">
           <thead className="bg-white/5">
             <tr>
+              <th className="px-4 py-3 text-left">Image</th>
               <th className="px-4 py-3 text-left">ID</th>
               <th className="px-4 py-3 text-left">Name</th>
               <th className="px-4 py-3 text-left">Species</th>
               <th className="px-4 py-3 text-left">Breed</th>
               <th className="px-4 py-3 text-left">Age</th>
+              <th className="px-4 py-3 text-left">Price</th>
               <th className="px-4 py-3 text-left">Status</th>
               <th className="px-4 py-3 text-center">Actions</th>
             </tr>
           </thead>
           <tbody>
             {pets.map((pet) => (
-              <tr key={pet.id} className="border-t border-white/10 hover:bg-white/5">
+              <tr
+                key={pet.id}
+                className="border-t border-white/10 hover:bg-white/5"
+              >
+                <td className="px-4 py-3">
+                  {pet.image_url ? (
+                    <img
+                      src={pet.image_url}
+                      alt={pet.name}
+                      className="w-16 h-16 object-cover rounded-lg"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = "";
+                        (e.target as HTMLImageElement).style.display = "none";
+                      }}
+                    />
+                  ) : (
+                    <div className="w-16 h-16 bg-white/10 rounded-lg flex items-center justify-center">
+                      🐾
+                    </div>
+                  )}
+                </td>
                 <td className="px-4 py-3">{pet.id}</td>
                 <td className="px-4 py-3">{pet.name}</td>
                 <td className="px-4 py-3">{pet.species}</td>
                 <td className="px-4 py-3">{pet.breed}</td>
                 <td className="px-4 py-3">{pet.age}</td>
+                <td className="px-4 py-3">{pet.price}</td>
                 <td className="px-4 py-3">
                   <span
                     className={`px-2 py-1 rounded text-sm ${
@@ -290,10 +554,20 @@ function PetsManager() {
   );
 }
 
+
 // ==================== PRODUCTS MANAGER ====================
 function ProductsManager() {
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    description: "",
+    price: "0",
+    category: "food",
+    stock: "0",
+    image_url: "",
+  });
 
   useEffect(() => {
     fetchProducts();
@@ -311,6 +585,49 @@ function ProductsManager() {
       console.error("Failed to fetch products:", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch("/api/admin/products", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          description: formData.description,
+          price: parseFloat(formData.price),
+          category: formData.category,
+          stock: parseInt(formData.stock),
+          image_url: formData.image_url,
+        }),
+      });
+
+      if (res.ok) {
+        alert("Product added successfully!");
+        setShowAddForm(false);
+        setFormData({
+          name: "",
+          description: "",
+          price: "0",
+          category: "food",
+          stock: "0",
+          image_url: "",
+        });
+        fetchProducts();
+      } else {
+        const errorData = await res.json();
+        alert("Failed to add product: " + (errorData.error || "Unknown error"));
+      }
+    } catch (err) {
+      console.error("Add error:", err);
+      alert("Error adding product");
     }
   };
 
@@ -339,11 +656,124 @@ function ProductsManager() {
 
   return (
     <div>
-      <h2 className="text-3xl font-bold text-white mb-6">Products Management</h2>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-3xl font-bold text-white">Products Management</h2>
+        <button
+          onClick={() => setShowAddForm(!showAddForm)}
+          className="px-6 py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold transition"
+        >
+          {showAddForm ? "Cancel" : "+ Add New Product"}
+        </button>
+      </div>
+
+      {/* Add Form */}
+      {showAddForm && (
+        <form
+          onSubmit={handleSubmit}
+          className="bg-white/5 p-6 rounded-lg mb-6"
+        >
+          {/* Image Preview */}
+          {formData.image_url && (
+            <div className="mb-4 flex justify-center">
+              <img
+                src={formData.image_url}
+                alt="Preview"
+                className="w-48 h-48 object-cover rounded-lg"
+              />
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <input
+              type="text"
+              placeholder="Product Name"
+              value={formData.name}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
+              className="p-3 rounded bg-white/10 text-white border border-white/20"
+              required
+            />
+
+            <select
+              value={formData.category}
+              onChange={(e) =>
+                setFormData({ ...formData, category: e.target.value })
+              }
+              className="p-3 rounded bg-white/10 text-white border border-white/20"
+            >
+              <option value="food">Food</option>
+              <option value="toys">Toys</option>
+              <option value="accessories">Accessories</option>
+              <option value="medicine">Medicine</option>
+              <option value="grooming">Grooming</option>
+            </select>
+
+            <input
+              type="number"
+              placeholder="Price"
+              value={formData.price}
+              onChange={(e) =>
+                setFormData({ ...formData, price: e.target.value })
+              }
+              className="p-3 rounded bg-white/10 text-white border border-white/20"
+              step="0.01"
+              min="0"
+              required
+            />
+
+            <input
+              type="number"
+              placeholder="Stock"
+              value={formData.stock}
+              onChange={(e) =>
+                setFormData({ ...formData, stock: e.target.value })
+              }
+              className="p-3 rounded bg-white/10 text-white border border-white/20"
+              min="0"
+              required
+            />
+          </div>
+
+          {/* Image URL Input */}
+          <input
+            type="url"
+            placeholder="Image URL (e.g., https://example.com/product.jpg)"
+            value={formData.image_url}
+            onChange={(e) =>
+              setFormData({ ...formData, image_url: e.target.value })
+            }
+            className="w-full p-3 rounded bg-white/10 text-white border border-white/20 mt-4"
+          />
+          <p className="text-gray-400 text-sm mt-1">
+            💡 Tip: Upload your image to <a href="https://imgur.com" target="_blank" className="text-blue-400 underline">Imgur</a> or use a direct image URL
+          </p>
+
+          <textarea
+            placeholder="Description"
+            value={formData.description}
+            onChange={(e) =>
+              setFormData({ ...formData, description: e.target.value })
+            }
+            className="w-full p-3 rounded bg-white/10 text-white border border-white/20 mt-4"
+            rows={3}
+          />
+
+          <button
+            type="submit"
+            className="mt-4 px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition"
+          >
+            Add Product
+          </button>
+        </form>
+      )}
+
+      {/* Products Table */}
       <div className="overflow-x-auto">
         <table className="w-full text-white">
           <thead className="bg-white/5">
             <tr>
+              <th className="px-4 py-3 text-left">Image</th>
               <th className="px-4 py-3 text-left">ID</th>
               <th className="px-4 py-3 text-left">Name</th>
               <th className="px-4 py-3 text-left">Category</th>
@@ -354,7 +784,23 @@ function ProductsManager() {
           </thead>
           <tbody>
             {products.map((product) => (
-              <tr key={product.id} className="border-t border-white/10 hover:bg-white/5">
+              <tr
+                key={product.id}
+                className="border-t border-white/10 hover:bg-white/5"
+              >
+                <td className="px-4 py-3">
+                  {product.image_url ? (
+                    <img
+                      src={product.image_url}
+                      alt={product.name}
+                      className="w-16 h-16 object-cover rounded-lg"
+                    />
+                  ) : (
+                    <div className="w-16 h-16 bg-white/10 rounded-lg flex items-center justify-center">
+                      🛍️
+                    </div>
+                  )}
+                </td>
                 <td className="px-4 py-3">{product.id}</td>
                 <td className="px-4 py-3">{product.name}</td>
                 <td className="px-4 py-3">{product.category}</td>
@@ -373,49 +819,50 @@ function ProductsManager() {
           </tbody>
         </table>
       </div>
+      
     </div>
   );
 }
 
-// ==================== APPOINTMENTS MANAGER ====================
-function AppointmentsManager() {
-  const [appointments, setAppointments] = useState<any[]>([]);
+// ==================== ORDERS MANAGER ====================
+function OrdersManager() {
+  const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchAppointments();
+    fetchOrders();
   }, []);
 
-  const fetchAppointments = async () => {
+  const fetchOrders = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("/api/admin/appointments", {
+      const res = await fetch("/api/admin/orders", {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
-      setAppointments(data.appointments || []);
+      setOrders(data.orders || []);
     } catch (err) {
-      console.error("Failed to fetch appointments:", err);
+      console.error("Failed to fetch orders:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  const deleteAppointment = async (id: number) => {
-    if (!confirm("Are you sure you want to delete this appointment?")) return;
+  const deleteOrder = async (id: number) => {
+    if (!confirm("Are you sure you want to delete this order?")) return;
 
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`/api/admin/appointments/${id}`, {
+      const res = await fetch(`/api/admin/orders/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
 
       if (res.ok) {
-        alert("Appointment deleted successfully");
-        fetchAppointments();
+        alert("Order deleted successfully");
+        fetchOrders();
       } else {
-        alert("Failed to delete appointment");
+        alert("Failed to delete order");
       }
     } catch (err) {
       console.error("Delete error:", err);
@@ -425,7 +872,7 @@ function AppointmentsManager() {
   const updateStatus = async (id: number, newStatus: string) => {
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`/api/admin/appointments/${id}`, {
+      const res = await fetch(`/api/admin/orders/${id}`, {
         method: "PATCH",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -435,60 +882,64 @@ function AppointmentsManager() {
       });
 
       if (res.ok) {
-        alert("Appointment status updated");
-        fetchAppointments();
-      } else {
-        alert("Failed to update status");
+        alert("Order status updated");
+        fetchOrders();
       }
     } catch (err) {
       console.error("Update error:", err);
     }
   };
 
-  if (loading) return <div className="text-white text-center">Loading appointments...</div>;
+  if (loading) return <div className="text-white text-center">Loading orders...</div>;
 
   return (
     <div>
-      <h2 className="text-3xl font-bold text-white mb-6">Appointments Management</h2>
+      <h2 className="text-3xl font-bold text-white mb-6">Orders Management</h2>
       <div className="overflow-x-auto">
         <table className="w-full text-white">
           <thead className="bg-white/5">
             <tr>
-              <th className="px-4 py-3 text-left">ID</th>
-              <th className="px-4 py-3 text-left">Pet Owner</th>
-              <th className="px-4 py-3 text-left">Pet Name</th>
-              <th className="px-4 py-3 text-left">Date & Time</th>
-              <th className="px-4 py-3 text-left">Reason</th>
+              <th className="px-4 py-3 text-left">Order ID</th>
+              <th className="px-4 py-3 text-left">Customer</th>
+              <th className="px-4 py-3 text-left">Products</th>
+              <th className="px-4 py-3 text-left">Total</th>
               <th className="px-4 py-3 text-left">Status</th>
+              <th className="px-4 py-3 text-left">Date</th>
               <th className="px-4 py-3 text-center">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {appointments.map((apt) => (
-              <tr key={apt.id} className="border-t border-white/10 hover:bg-white/5">
-                <td className="px-4 py-3">{apt.id}</td>
-                <td className="px-4 py-3">{apt.owner_name}</td>
-                <td className="px-4 py-3">{apt.pet_name}</td>
+            {orders.map((order) => (
+              <tr key={order.id} className="border-t border-white/10 hover:bg-white/5">
+                <td className="px-4 py-3">#{order.id}</td>
+                <td className="px-4 py-3">{order.user_name}</td>
                 <td className="px-4 py-3">
-                  {new Date(apt.appointment_date).toLocaleString()}
+                  {order.items?.map((item: any) => (
+                    <div key={item.id} className="text-sm">
+                      {item.product_name} x{item.quantity}
+                    </div>
+                  ))}
                 </td>
-                <td className="px-4 py-3">{apt.reason}</td>
+                <td className="px-4 py-3">${order.total_amount}</td>
                 <td className="px-4 py-3">
                   <select
-                    value={apt.status}
-                    onChange={(e) => updateStatus(apt.id, e.target.value)}
-                    className="bg-white/10 px-2 py-1 rounded border border-white/20"
+                    value={order.status}
+                    onChange={(e) => updateStatus(order.id, e.target.value)}
+                    className="bg-white/10 px-2 py-1 rounded border border-white/20 text-sm"
                   >
                     <option value="pending">Pending</option>
-                    <option value="confirmed">Confirmed</option>
+                    <option value="processing">Processing</option>
                     <option value="completed">Completed</option>
                     <option value="cancelled">Cancelled</option>
                   </select>
                 </td>
+                <td className="px-4 py-3 text-sm">
+                  {new Date(order.created_at).toLocaleDateString()}
+                </td>
                 <td className="px-4 py-3 text-center">
                   <button
-                    onClick={() => deleteAppointment(apt.id)}
-                    className="px-4 py-2 bg-red-500 hover:bg-red-600 rounded-lg transition"
+                    onClick={() => deleteOrder(order.id)}
+                    className="px-3 py-1 bg-red-500 hover:bg-red-600 rounded text-sm transition"
                   >
                     Delete
                   </button>

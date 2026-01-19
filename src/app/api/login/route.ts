@@ -9,6 +9,7 @@ export async function POST(req: NextRequest) {
   console.log("🔑 JWT_SECRET length:", process.env.JWT_SECRET?.length);
 
   try {
+    
     const body = await req.json();
     const { email, password } = body;
 
@@ -58,26 +59,26 @@ export async function POST(req: NextRequest) {
 
     console.log("🎫 Creating JWT token...");
     const token = jwt.sign(
-      { 
-        id: user.id, 
-        email: user.email, 
+      {
+        id: user.id,
+        email: user.email,
         name: user.name || user.email,
-        role: user.role 
+        role: user.role, // ✅ ADD THIS LINE
       },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
+      process.env.JWT_SECRET!,
+      { expiresIn: "7d" },
     );
 
-    console.log("✅ Token created successfully");
     console.log("✅ User from database:", {
       id: user.id,
       email: user.email,
-      name: user.name
+      name: user.name,
+      role: user.role, // ✅ ADD THIS LINE
     });
 
     return NextResponse.json({
       token,
-      user: { name: user.name, email: user.email },
+      user: { name: user.name, email: user.email, role: user.role }, // ✅ ADD role here too
     });
   } catch (err: any) {
     console.error("❌ Login error:", err);

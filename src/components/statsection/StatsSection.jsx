@@ -37,10 +37,10 @@ export default function StatsSection() {
         "https://images.unsplash.com/photo-1574158622682-e40e69881006?q=80&w=1280&auto=format&fit=crop",
     },
     {
-      title: "Veterinary Injections",
+      title: "Pets in Marketplace",
       value: 7920,
       image:
-        "https://nypost.com/wp-content/uploads/sites/2/2024/05/u-s-households-now-pet-81456339.jpg?=80&w=1280&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1599194921977-f89d8bd0eefb?q=80&w=415&auto=format&fit=crop",
     },
     {
       title: "Products Sold",

@@ -23,13 +23,13 @@ export async function GET(req: NextRequest) {
     console.log("📍 Verifying token...");
     
     const decoded = jwt.verify(token, process.env.JWT_SECRET) as any;
-    console.log("📍 Token verified! User:", decoded.name);
+    console.log("📍 Token verified! User:", decoded.name, "Role:", decoded.role);
 
     const response = {
       user: {
         name: decoded.name,
         email: decoded.email,
-        role: decoded.role,
+        role: decoded.role,  // ✅ ADD THIS
       },
     };
 

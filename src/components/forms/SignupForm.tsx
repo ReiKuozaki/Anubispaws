@@ -99,20 +99,7 @@ export const SignupForm = () => {
   ) : (
     // Step 2: Verification
     <div className="space-y-4">
-      <p className="text-center">We sent a verification code to your email</p>
-      <input
-        type="text"
-        placeholder="Enter verification code"
-        className="w-full p-3 border rounded-lg"
-        value={code}
-        onChange={(e) => setCode(e.target.value)}
-      />
-      <button
-        onClick={handleVerify}
-        className="w-full bg-black text-white p-3 rounded-lg hover:bg-gray-50 hover:text-black duration-200"
-      >
-        Verify Email
-      </button>
+      
     </div>
   );
 };

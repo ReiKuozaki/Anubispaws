@@ -77,38 +77,40 @@ export default function AdoptPetPage({
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitting(true);
+  e.preventDefault();
+  setSubmitting(true);
 
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("Not authenticated");
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) throw new Error("Not authenticated");
 
-      const res = await fetch("/api/adoption-requests", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          pet_id: petId,
-          ...formData,
-        }),
-      });
+    const res = await fetch("/api/user/orders", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        pets: [{ id: petId }],
+        products: [], // nothing here for pets
+        shipping_address: formData.address,
+        payment_method: "Cash on Delivery", // or from user input
+      }),
+    });
 
-      const data = await res.json();
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Failed to create order");
 
-      if (!res.ok) throw new Error(data.error);
+    alert("Adoption request submitted!");
+    router.push("/dashboard"); // redirect to dashboard to see the order
+  } catch (err: any) {
+    console.error(err);
+    alert(err.message || "Failed to submit request");
+  } finally {
+    setSubmitting(false);
+  }
+};
 
-      alert("Adoption request submitted!");
-      router.push("/adoption");
-    } catch (err) {
-      console.error(err);
-      alert("Failed to submit request");
-    } finally {
-      setSubmitting(false);
-    }
-  };
 
   if (loading) {
     return (

@@ -8,7 +8,9 @@ export default function AdminPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [activeTab, setActiveTab] = useState<"users" | "pets" | "products" | "orders" | "adoptions">("users");
+  const [activeTab, setActiveTab] = useState<
+  "users" | "pets" | "products" | "orders">("users");
+
 
   useEffect(() => {
     const checkAdmin = async () => {
@@ -68,7 +70,6 @@ export default function AdminPage() {
             { id: "pets", label: "Pet Adoptions", icon: "🐾" },
             { id: "products", label: "Products", icon: "🛍️" },
             { id: "orders", label: "Orders", icon: "📦" },
-            { id: "adoptions", label: "Adoption Requests", icon: "🏠" },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -824,10 +825,11 @@ function ProductsManager() {
   );
 }
 
-// ==================== ORDERS MANAGER ====================
+// ==================== ORDERS MANAGER (Enhanced) ====================
 function OrdersManager() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingOrder, setEditingOrder] = useState<number | null>(null);
 
   useEffect(() => {
     fetchOrders();
@@ -840,7 +842,7 @@ function OrdersManager() {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
-      setOrders(data.orders || []);
+      setOrders(Array.isArray(data) ? data : data.orders || []);
     } catch (err) {
       console.error("Failed to fetch orders:", err);
     } finally {
@@ -848,6 +850,60 @@ function OrdersManager() {
     }
   };
 
+  const approveOrder = async (id: number) => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`/api/admin/orders/${id}`, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: "completed" }),
+      });
+
+      const data = await res.json();
+      console.log("Approve response:", data);
+
+      if (res.ok) {
+        alert("Order approved successfully");
+        fetchOrders();
+        setEditingOrder(null);
+      } else {
+        alert("Failed to approve order: " + (data.error || "Unknown error"));
+      }
+    } catch (err) {
+      console.error("Approve error:", err);
+      alert("Error approving order");
+    }
+  };
+const setOrderPending = async (id: number) => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`/api/admin/orders/${id}`, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: "pending" }),
+      });
+
+      const data = await res.json();
+      console.log("Set pending response:", data);
+
+      if (res.ok) {
+        alert("Order set to pending successfully");
+        fetchOrders();
+        setEditingOrder(null);
+      } else {
+        alert("Failed to set order to pending: " + (data.error || "Unknown error"));
+      }
+    } catch (err) {
+      console.error("Set pending error:", err);
+      alert("Error setting order to pending");
+    }
+  };
   const deleteOrder = async (id: number) => {
     if (!confirm("Are you sure you want to delete this order?")) return;
 
@@ -858,39 +914,26 @@ function OrdersManager() {
         headers: { Authorization: `Bearer ${token}` },
       });
 
+      const data = await res.json();
+      console.log("Delete response:", data);
+
       if (res.ok) {
         alert("Order deleted successfully");
         fetchOrders();
+        setEditingOrder(null);
       } else {
-        alert("Failed to delete order");
+        alert("Failed to delete order: " + (data.error || "Unknown error"));
       }
     } catch (err) {
       console.error("Delete error:", err);
-    }
-  };
-
-  const updateStatus = async (id: number, newStatus: string) => {
-    try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`/api/admin/orders/${id}`, {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ status: newStatus }),
-      });
-
-      if (res.ok) {
-        alert("Order status updated");
-        fetchOrders();
-      }
-    } catch (err) {
-      console.error("Update error:", err);
+      alert("Error deleting order");
     }
   };
 
   if (loading) return <div className="text-white text-center">Loading orders...</div>;
+  if (!orders.length) return <div className="text-white text-center">No orders found</div>;
+
+
 
   return (
     <div>
@@ -900,8 +943,7 @@ function OrdersManager() {
           <thead className="bg-white/5">
             <tr>
               <th className="px-4 py-3 text-left">Order ID</th>
-              <th className="px-4 py-3 text-left">Customer</th>
-              <th className="px-4 py-3 text-left">Products</th>
+              <th className="px-4 py-3 text-left">User</th>
               <th className="px-4 py-3 text-left">Total</th>
               <th className="px-4 py-3 text-left">Status</th>
               <th className="px-4 py-3 text-left">Date</th>
@@ -912,37 +954,45 @@ function OrdersManager() {
             {orders.map((order) => (
               <tr key={order.id} className="border-t border-white/10 hover:bg-white/5">
                 <td className="px-4 py-3">#{order.id}</td>
-                <td className="px-4 py-3">{order.user_name}</td>
-                <td className="px-4 py-3">
-                  {order.items?.map((item: any) => (
-                    <div key={item.id} className="text-sm">
-                      {item.product_name} x{item.quantity}
-                    </div>
-                  ))}
-                </td>
-                <td className="px-4 py-3">${order.total_amount}</td>
-                <td className="px-4 py-3">
-                  <select
-                    value={order.status}
-                    onChange={(e) => updateStatus(order.id, e.target.value)}
-                    className="bg-white/10 px-2 py-1 rounded border border-white/20 text-sm"
-                  >
-                    <option value="pending">Pending</option>
-                    <option value="processing">Processing</option>
-                    <option value="completed">Completed</option>
-                    <option value="cancelled">Cancelled</option>
-                  </select>
-                </td>
-                <td className="px-4 py-3 text-sm">
-                  {new Date(order.created_at).toLocaleDateString()}
-                </td>
-                <td className="px-4 py-3 text-center">
+                <td className="px-4 py-3">{order.user_email || "Unknown"}</td>
+                <td className="px-4 py-3 font-semibold">NPR {order.total_amount}</td>
+                <td className="px-4 py-3 capitalize">{order.status}</td>
+                <td className="px-4 py-3">{new Date(order.created_at).toLocaleDateString()}</td>
+                <td className="px-4 py-3 text-center relative">
                   <button
-                    onClick={() => deleteOrder(order.id)}
-                    className="px-3 py-1 bg-red-500 hover:bg-red-600 rounded text-sm transition"
+                    onClick={() => setEditingOrder(editingOrder === order.id ? null : order.id)}
+                    className="px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded-lg"
                   >
-                    Delete
+                    Edit
                   </button>
+
+                  {editingOrder === order.id && (
+  <div className="absolute right-0 mt-2 bg-gray-900 border border-white/20 rounded-lg shadow-lg z-10">
+    <button
+      onClick={() => approveOrder(order.id)}
+      className="block w-full text-left px-4 py-2 hover:bg-white/10"
+    >
+      ✅ Approve (Completed)
+    </button>
+
+    <button
+      onClick={() => deleteOrder(order.id)}
+      className="block w-full text-left px-4 py-2 text-red-400 hover:bg-red-500/20"
+    >
+      🗑 Delete
+    </button>
+
+    {order.status !== "pending" && (
+      <button
+        onClick={() => setOrderPending(order.id)}
+        className="block w-full text-left px-4 py-2 text-yellow-400 hover:bg-white/10"
+      >
+        ⏳ Set Pending
+      </button>
+    )}
+  </div>
+)}
+
                 </td>
               </tr>
             ))}

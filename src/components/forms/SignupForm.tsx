@@ -3,47 +3,41 @@
 import React, { useState } from "react";
 import { PasswordStrength } from "./PasswordStrength";
 import GoogleButton from "../forms/GoogleButton";
+import { useRouter } from "next/navigation";
 
 export const SignupForm = () => {
+  const router = useRouter();
   const [nickname, setNickname] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
-  const [step, setStep] = useState(1);
-
-  // 👇 new state for verification
-  const [code, setCode] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirm) return alert("Passwords do not match");
 
-    const res = await fetch("/api/signup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nickname, email, password }),
-    });
-    const data = await res.json();
-    if (data.success) {
-      setStep(2); // move to verification step
-    } else {
-      alert(data.error || "Signup failed");
-    }
-  };
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nickname, email, password }),
+      });
 
-  // 👇 new verify function
-  const handleVerify = async () => {
-    const res = await fetch("/api/verify", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, code }),
-    });
-    const data = await res.json();
-    if (data.success) {
-      alert("Email verified! You can now log in.");
-      // maybe redirect to login page
-    } else {
-      alert(data.error || "Invalid or expired code");
+      const data = await res.json();
+
+      if (data.success) {
+        alert("Signup successful! Redirecting to home...");
+        router.push("/home"); // redirect right after signup
+      } else {
+        alert(data.error || "Signup failed");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("An error occurred during signup");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -51,8 +45,7 @@ export const SignupForm = () => {
     window.location.href = "/api/auth/google";
   };
 
-  return step === 1 ? (
-    // Step 1: Signup
+  return (
     <form onSubmit={handleSignup} className="space-y-4">
       <input
         type="text"
@@ -89,17 +82,15 @@ export const SignupForm = () => {
       />
       <button
         type="submit"
-        className="w-full bg-black text-white p-3 rounded-lg hover:bg-gray-50 duration-200 hover:text-black"
+        disabled={submitting}
+        className="w-full bg-black text-white p-3 rounded-lg hover:bg-gray-50 duration-200 hover:text-black disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        Sign Up
+        {submitting ? "Signing up..." : "Sign Up"}
       </button>
+
       <div className="w-full text-center">OR</div>
+
       <GoogleButton />
     </form>
-  ) : (
-    // Step 2: Verification
-    <div className="space-y-4">
-      
-    </div>
   );
 };

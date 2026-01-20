@@ -35,66 +35,59 @@ useEffect(() => {
   if (!productId) return;
 
   setLoading(true);
+
   fetch(`/api/products/${productId}`)
-    .then((res) => {
-      if (!res.ok) throw new Error("Product not found");
-      return res.json();
+    .then(async (res) => {
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to fetch product");
+      }
+
+      return data;
     })
-    .then((data) => setProduct(data.product))
-    .catch(() => setProduct(null))
+    .then((data) => {
+      setProduct(data.product);
+    })
+    .catch((err) => {
+      console.error("FETCH ERROR:", err.message);
+      setProduct(null);
+    })
     .finally(() => setLoading(false));
 }, [productId]);
 
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
 
-    if (!user) {
-      alert("Please login to place an order");
-      router.push("/auth?tab=login");
-      return;
-    }
+  const handleBuy = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) throw new Error("Not authenticated");
 
-    if (!product) return;
+    const res = await fetch("/api/user/orders", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        pets: [],
+        products: [{ id: productId, quantity: 1 }],
+        shipping_address: "User address here",
+        payment_method: "Cash on Delivery",
+      }),
+    });
 
-    setSubmitting(true);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Failed to buy product");
 
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("Not authenticated");
+    alert("Product purchased!");
+    router.push("/dashboard");
+  } catch (err: any) {
+    console.error(err);
+    alert(err.message || "Failed to buy product");
+  }
+};
 
-      const res = await fetch("/api/user/orders", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          items: [
-            {
-              type: "product",
-              id: product.id,
-              quantity,
-              price: product.price,
-            },
-          ],
-          shipping_address: formData.shipping_address,
-          contact_phone: formData.contact_phone,
-          payment_method: formData.payment_method,
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to place order");
-
-      alert("Order placed successfully!");
-      router.push("/dashboard");
-    } catch (err: any) {
-      alert(err.message || "Failed to place order");
-    } finally {
-      setSubmitting(false);
-    }
-  };
 
   if (loading) {
     return (
@@ -153,7 +146,7 @@ useEffect(() => {
 
           {/* Order Form */}
           <form
-            onSubmit={handleSubmit}
+            onSubmit={handleBuy}
             className="bg-white/10 rounded-xl p-6 space-y-4"
           >
             <h3 className="text-2xl font-bold text-white mb-4">Order Details</h3>

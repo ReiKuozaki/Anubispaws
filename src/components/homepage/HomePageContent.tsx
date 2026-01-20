@@ -25,6 +25,7 @@ export default function HomePageContent() {
     "/images/pet7.jpg",
     "/images/pet3.png",
     "/images/pet18.jpg",
+    
   ];
 
   const marqueeImages = [
@@ -33,6 +34,9 @@ export default function HomePageContent() {
     "/images/cat3.png",
     "/images/pet12.jpg",
     "/images/pet11.jpg",
+    "/images/pet3.png",
+    "/images/pet14.jpg",
+    "/images/pet1.png",
     "/images/pet3.png",
     "/images/pet7.jpg",
     "/images/pet11.jpg",
@@ -87,7 +91,11 @@ export default function HomePageContent() {
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 1.4 }}
       >
-        <div className="absolute inset-0 left-1/2 scale-130 p-20 -translate-x-1/2 w-[100vw] h-full z-0 opacity-40 overflow-hidden">
+        <div className=" absolute inset-0
+  w-screen h-full
+  p-15
+  z-0 opacity-40
+  overflow-hidden">
   <ThreeDMarquee images={marqueeImages} />
 </div>
 

@@ -1,0 +1,41 @@
+import { NextRequest, NextResponse } from "next/server";
+import pool from "@/db/db";
+import { parseToken } from "@/lib/auth";
+
+export async function GET(req: NextRequest) {
+  try {
+    const authHeader = req.headers.get("authorization");
+
+    if (!authHeader) {
+      return NextResponse.json({ orders: [] });
+    }
+
+    const token = authHeader.replace("Bearer ", "");
+    const decoded: any = parseToken(token);
+
+    if (!decoded || decoded.role !== "admin") {
+      return NextResponse.json({ orders: [] });
+    }
+
+    const [rows]: any = await pool.execute(`
+      SELECT 
+        o.id,
+        o.total_amount,
+        o.status,
+        o.created_at,
+        u.email AS user_email
+      FROM orders o
+      LEFT JOIN users u ON u.id = o.user_id
+      ORDER BY o.id DESC
+    `);
+
+    return NextResponse.json({
+      orders: Array.isArray(rows) ? rows : [],
+    });
+  } catch (err) {
+    console.error("ADMIN ORDERS API ERROR:", err);
+
+    // ⚠️ NEVER return empty response
+    return NextResponse.json({ orders: [] });
+  }
+}

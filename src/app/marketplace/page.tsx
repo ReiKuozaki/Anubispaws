@@ -142,7 +142,7 @@ export default function MarketplacePage() {
                     }
                     className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white py-3 rounded-lg font-semibold transition"
                   >
-                    Buy
+                    Add to order
                   </button>
                 </div>
               </div>

@@ -6,9 +6,7 @@ const ADMIN_EMAIL = "prajwalbasnet1943@gmail.com";
 
 function verifyAdmin(req: NextRequest) {
   const authHeader = req.headers.get("authorization");
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return null;
-  }
+  if (!authHeader || !authHeader.startsWith("Bearer ")) return null;
 
   const token = authHeader.split(" ")[1];
   try {
@@ -21,7 +19,7 @@ function verifyAdmin(req: NextRequest) {
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> } // <--- note this
 ) {
   const admin = verifyAdmin(req);
   if (!admin) {
@@ -29,7 +27,13 @@ export async function DELETE(
   }
 
   try {
-    await pool.execute("DELETE FROM users WHERE id = ?", [params.id]);
+    const params = await context.params; // <--- unwrap the promise
+    const userId = Number(params.id);
+    if (isNaN(userId)) {
+      return NextResponse.json({ error: "Invalid user ID" }, { status: 400 });
+    }
+
+    await pool.execute("DELETE FROM users WHERE id = ?", [userId]);
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error("Failed to delete user:", err);

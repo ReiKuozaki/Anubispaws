@@ -75,7 +75,7 @@ export default function Footer() {
             <div className="flex flex-col gap-4">
           <span className="font-semibold">About your pet</span>
           <ul className="flex flex-col gap-4">
-            {["Veterinary surgeries", "Marketplace", "Appointment","Adoption"].map((item) => (
+            {[ "Marketplace", "Features"].map((item) => (
               <li
                 key={item}
                 className="hover:text-white hover:drop-shadow-[0_0_3px_white] transition-all duration-300 cursor-pointer"
@@ -89,7 +89,7 @@ export default function Footer() {
         <div className="flex flex-col gap-4">
           <span className="font-semibold">Navigation</span>
           <ul className="flex flex-col gap-4">
-            {["Features", "Marketplace", "Adoption", "Appointments"].map((item) => (
+            {["Features", "Marketplace", "Adoption",].map((item) => (
               <li
                 key={item}
                 className="hover:text-white hover:drop-shadow-[0_0_3px_white] transition-all duration-300 cursor-pointer"

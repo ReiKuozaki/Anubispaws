@@ -373,7 +373,7 @@ function PetsManager() {
               onChange={(e) =>
                 setFormData({ ...formData, species: e.target.value })
               }
-              className="p-3 rounded bg-white/10 text-white border border-white/20"
+              className="p-3 rounded text-black border border-white/20"
             >
               <option value="dog">Dog</option>
               <option value="cat">Cat</option>
@@ -422,7 +422,7 @@ function PetsManager() {
               onChange={(e) =>
                 setFormData({ ...formData, gender: e.target.value })
               }
-              className="p-3 rounded bg-white/10 text-white border border-white/20"
+              className="p-3 rounded  text-black border border-white/20"
             >
               <option value="male">Male</option>
               <option value="female">Female</option>

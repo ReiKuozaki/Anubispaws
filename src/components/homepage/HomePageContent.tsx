@@ -13,6 +13,7 @@ import { GridBackgroundDemo } from "../background/background";
 import CaseStudyCard from "../animata/card/case-study-card";
 import { DirectionAwareHover } from "../ui/direction-aware-hover";
 import { HoverBorderGradient } from "../ui/hover-border-gradient";
+import { Vortex } from "../ui/vortex";
 
 export default function HomePageContent() {
   const { scrollY } = useScroll();
@@ -20,7 +21,7 @@ export default function HomePageContent() {
   const moveUp = useTransform(scrollY, [1, 300], [0, -100]);
   const words = ["thrive", "shine", "play", "smile"];
 
-  const heroImages = ["/images/pet7.jpg", "/images/pet5.png", "/images/pet18.jpg"];
+
   const petsImages = [
     "/images/pet7.jpg",
     "/images/pet3.png",
@@ -49,40 +50,36 @@ export default function HomePageContent() {
   return (
     <>
       {/* Hero Section */}
-      <motion.section
-        style={{ opacity: fadeOut, y: moveUp }}
-        className="relative w-screen h-screen -mt-11 flex flex-col items-center justify-center overflow-hidden bg-gray-950"
-      >
-        <h1 className="text-6xl font-extrabold text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.8)]">
-          AnubisPaws
-        </h1>
-        <div className="mt-4 text-center text-4xl font-normal text-neutral-200">
-          Where pets <FlipWords words={words} /> with love.
-        </div>
+<motion.section
+  style={{ opacity: fadeOut, y: moveUp }}
+  className="relative w-screen h-screen -mt-11 flex flex-col items-center justify-center overflow-hidden bg-gray-950"
+>
+  {/* Vortex Background */}
+  <div className="absolute inset-0 flex items-center justify-center z-0">
+    <Vortex className="w-full h-full " />
+  </div>
 
-        <div className="mt-8 flex gap-6 justify-center">
-          <Link href="/adoption">
-            <RippleButton>Adoptions</RippleButton>
-          </Link>
-          <Link href="/marketplace">
-            <RippleButton>Marketplace</RippleButton>
-          </Link>
-        </div>
+  {/* Content on top of Vortex */}
+  <div className="relative z-10 flex flex-col items-center justify-center text-center">
+    <h1 className="text-6xl font-extrabold text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.8)]">
+      AnubisPaws
+    </h1>
+    <div className="mt-4 text-4xl font-normal text-neutral-200">
+      Where pets <FlipWords words={words} /> with love.
+    </div>
 
-        {heroImages.map((src, i) => (
-          <div
-            key={i}
-            className={`absolute w-[500px] h-[800px] opacity-0 animate-floatIn${i}`}
-          >
-            <Image
-              src={src}
-              alt={`floating-${i}`}
-              fill
-              className="object-contain"
-            />
-          </div>
-        ))}
-      </motion.section>
+    <div className="mt-8 flex gap-6 justify-center">
+      <Link href="/adoption">
+        <RippleButton>Adoptions</RippleButton>
+      </Link>
+      <Link href="/marketplace">
+        <RippleButton>Marketplace</RippleButton>
+      </Link>
+    </div>
+  </div>
+</motion.section>
+
+
 
       {/* Stats + Marquee */}
       <motion.div

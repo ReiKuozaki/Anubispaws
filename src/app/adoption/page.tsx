@@ -132,7 +132,7 @@ export default function AdoptionPage() {
                     onClick={() => router.push(`/adopt/${pet.id}`)}  // ✅ Fixed: use () not ``
                     className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white py-3 rounded-lg font-semibold transition"
                   >
-                    Adopt Me
+                    Add to orders
                   </button>
                 </div>
               </div>

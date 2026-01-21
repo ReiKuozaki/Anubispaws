@@ -1,7 +1,17 @@
-// FILE: /api/user/orders/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import pool from "@/db/db";
 import { parseToken } from "@/lib/auth";
+
+// Safe JSON parse utility
+function safeJsonParse(value: any, defaultValue: any = []) {
+  try {
+    if (!value) return defaultValue;
+    if (typeof value !== "string") return defaultValue;
+    return JSON.parse(value);
+  } catch {
+    return defaultValue;
+  }
+}
 
 export async function GET(req: NextRequest) {
   try {
@@ -14,43 +24,82 @@ export async function GET(req: NextRequest) {
     if (!decoded)
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
 
-    // Fetch orders for this user
+    // Get all orders for user
     const [orders]: any = await pool.execute(
-      "SELECT * FROM orders WHERE user_id = ? ORDER BY id DESC",
+      "SELECT * FROM orders WHERE user_id=? ORDER BY id DESC",
       [decoded.id]
     );
 
-    // For each order, fetch pets and products linked by user_id and pending/completed status
+    // Enrich orders with pet & product details
     const detailedOrders = await Promise.all(
-      (orders as any[]).map(async (order) => {
-        // Pets in this order
-        const [pets]: any = await pool.execute(
-          "SELECT id, name, species, breed, age, gender, description, status, price, image_url FROM pets WHERE owner_id=? AND status IN ('pending','completed')",
-          [decoded.id]
-        );
+      orders.map(async (order: any) => {
+        const petItems = safeJsonParse(order.pets, []);
+        const productItems = safeJsonParse(order.products, []);
 
-        // Products in this order (only those bought in this session)
-        const [products]: any = await pool.execute(
-          "SELECT id, name, price, stock FROM products WHERE stock >= 0"
-        );
+        let pets: any[] = [];
+        let products: any[] = [];
+
+        // Pets: get full details
+        if (petItems.length > 0) {
+          const ids = petItems.map((p: any) => Number(p.id));
+          const [rows]: any = await pool.execute(
+            `SELECT id, name, species, breed, age, gender, status, price, image_url
+             FROM pets WHERE id IN (${ids.map(() => "?").join(",")})`,
+            ids
+          );
+          pets = rows.map((p: any) => ({
+            id: Number(p.id),
+            name: p.name,
+            species: p.species,
+            breed: p.breed,
+            age: p.age,
+            gender: p.gender,
+            status: p.status,
+            price: Number(p.price),
+            image_url: p.image_url,
+          }));
+        }
+
+        // Products: get full details + quantity
+        if (productItems.length > 0) {
+          const ids = productItems.map((p: any) => Number(p.id));
+          const [rows]: any = await pool.execute(
+            `SELECT id, name, price
+             FROM products WHERE id IN (${ids.map(() => "?").join(",")})`,
+            ids
+          );
+
+          products = rows.map((p: any) => {
+            const prod = productItems.find(
+              (i: any) => Number(i.id) === Number(p.id),
+            );
+            return {
+              id: Number(p.id), // ✅ ADD THIS
+              name: p.name,
+              price: Number(p.price),
+              quantity: Number(prod?.quantity ?? 1),
+              imageurl: p.image_url
+            };
+          });
+        }
 
         return {
           ...order,
           pets,
-          products: products.map((p: any) => ({
-            ...p,
-            quantity: 1, // Default 1 since no order_items table
-          })),
+          products,
         };
       })
     );
 
     return NextResponse.json({ orders: detailedOrders });
   } catch (err) {
-    console.error(err);
+    console.error("GET orders error:", err);
     return NextResponse.json({ error: "Failed to fetch orders" }, { status: 500 });
   }
 }
+
+
+
 
 export async function POST(req: NextRequest) {
   try {
@@ -70,67 +119,73 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No items to order" }, { status: 400 });
 
     let totalAmount = 0;
+    const petsPayload: any[] = [];
+    const productsPayload: any[] = [];
 
-    // Step 1: Validate pets and mark pending
+    // Pets
     for (const pet of pets) {
       const [rows]: any = await pool.execute(
         "SELECT price, status FROM pets WHERE id=?",
         [pet.id]
       );
-      if (!rows.length) return NextResponse.json({ error: `Pet ${pet.id} not found` }, { status: 404 });
-      if (rows[0].status !== "available") return NextResponse.json({ error: `Pet ${pet.id} not available` }, { status: 400 });
+
+      if (!rows.length) return NextResponse.json({ error: "Pet not found" }, { status: 404 });
+      if (rows[0].status !== "available")
+        return NextResponse.json({ error: "Pet not available" }, { status: 400 });
 
       totalAmount += Number(rows[0].price);
 
-      // Mark pet as pending and assign owner
       await pool.execute(
         "UPDATE pets SET status='pending', owner_id=? WHERE id=?",
         [decoded.id, pet.id]
       );
+
+      petsPayload.push({ id: pet.id });
     }
 
-    // Step 2: Validate products and reduce stock
+    // Products
     for (const product of products) {
       const [rows]: any = await pool.execute(
         "SELECT price, stock FROM products WHERE id=?",
         [product.id]
       );
-      if (!rows.length) return NextResponse.json({ error: `Product ${product.id} not found` }, { status: 404 });
+
+      if (!rows.length) return NextResponse.json({ error: "Product not found" }, { status: 404 });
       if (rows[0].stock < product.quantity)
-        return NextResponse.json({ error: `Not enough stock for product ${product.id}` }, { status: 400 });
+        return NextResponse.json({ error: "Not enough stock" }, { status: 400 });
 
-      totalAmount += Number(rows[0].price) * Number(product.quantity);
+      totalAmount += Number(rows[0].price) * product.quantity;
 
-      // Reduce stock
-      await pool.execute(
-        "UPDATE products SET stock=stock-? WHERE id=?",
-        [product.quantity, product.id]
-      );
+      await pool.execute("UPDATE products SET stock=stock-? WHERE id=?", [product.quantity, product.id]);
+
+      productsPayload.push({ id: product.id, quantity: product.quantity });
     }
 
-    // Step 3: Insert order
-   const [result]: any = await pool.execute(
-     "INSERT INTO orders (user_id, total_amount, status, shipping_address, payment_method) VALUES (?, ?, 'pending', ?, ?)",
-     [
-       decoded.id,
-       totalAmount,
-       shipping_address || null,
-       payment_method || null,
-     ],
-   );
+    // Store order
+    const [result]: any = await pool.execute(
+      `INSERT INTO orders 
+       (user_id, pets, products, total_amount, status, shipping_address, payment_method)
+       VALUES (?, ?, ?, ?, 'pending', ?, ?)`,
+      [
+        decoded.id,
+        JSON.stringify(petsPayload),
+        JSON.stringify(productsPayload),
+        totalAmount,
+        shipping_address || null,
+        payment_method || null,
+      ]
+    );
 
-    const orderId = result.insertId;
-
-    return NextResponse.json({ message: "Order created", orderId });
+    return NextResponse.json({ message: "Order created", orderId: result.insertId });
   } catch (err) {
-    console.error(err);
+    console.error("POST order error:", err);
     return NextResponse.json({ error: "Failed to create order" }, { status: 500 });
   }
 }
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authHeader = req.headers.get("authorization");
@@ -146,47 +201,35 @@ export async function PATCH(
     const orderId = parseInt(id);
     if (isNaN(orderId))
       return NextResponse.json({ error: "Invalid order ID" }, { status: 400 });
-    // Verify order belongs to user
+
     const [orders]: any = await pool.execute(
       "SELECT * FROM orders WHERE id=? AND user_id=?",
-      [orderId, decoded.id],
+      [orderId, decoded.id]
     );
     if (!orders.length)
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
 
     const order = orders[0];
 
-    // Only allow cancelling pending orders
+    const { status } = await req.json();
     if (status === "cancelled" && order.status !== "pending")
-      return NextResponse.json(
-        { error: "Only pending orders can be cancelled" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Only pending orders can be cancelled" }, { status: 400 });
 
-    // Update order status
-    await pool.execute("UPDATE orders SET status=? WHERE id=?", [
-      status,
-      orderId,
-    ]);
+    await pool.execute("UPDATE orders SET status=? WHERE id=?", [status, orderId]);
 
     if (status === "cancelled") {
-      // Restore pets
       await pool.execute(
         "UPDATE pets SET status='available', owner_id=NULL WHERE owner_id=? AND status='pending'",
-        [decoded.id],
+        [decoded.id]
       );
 
-      // Restore product stock (optional: in real scenario you'd track quantity per order)
-      // This example assumes 1 quantity per product for simplicity
-      await pool.execute("UPDATE products SET stock=stock+1 WHERE stock >= 0");
+      // Optional: restore product stock
+      // If you want exact quantity, you can read order.products and update stock accordingly
     }
 
     return NextResponse.json({ message: "Order updated successfully" });
   } catch (err) {
-    console.error("Error updating order:", err);
-    return NextResponse.json(
-      { error: "Failed to update order" },
-      { status: 500 },
-    );
+    console.error("PATCH order error:", err);
+    return NextResponse.json({ error: "Failed to update order" }, { status: 500 });
   }
 }

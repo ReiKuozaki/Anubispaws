@@ -9,6 +9,10 @@ interface PetOrder {
   species: string;
   price: number;
   status: string;
+  image_url?: string;
+  breed?: string;
+  age?: number;
+  gender?: string;
 }
 
 interface ProductOrder {
@@ -16,6 +20,7 @@ interface ProductOrder {
   name: string;
   quantity: number;
   price: number;
+
 }
 
 interface Order {
@@ -47,11 +52,15 @@ export default function DashboardPage() {
       });
       const data = await res.json();
       setOrders(data.orders || []);
+      console.log(data.orders);
+
     } catch (err) {
       console.error("Failed to fetch orders:", err);
     } finally {
       setLoading(false);
     }
+    
+
   };
 
   const handleCancelOrder = async (orderId: number) => {
@@ -139,10 +148,7 @@ export default function DashboardPage() {
           <p className="text-gray-300">You have no orders yet.</p>
         ) : (
           orders.map((order) => (
-            <div
-              key={order.id}
-              className="bg-white/10 rounded-xl p-6 mb-6"
-            >
+            <div key={order.id} className="bg-white/10 rounded-xl p-6 mb-6">
               <div className="flex justify-between items-center mb-4">
                 <div>
                   <h3 className="text-xl text-white font-semibold">
@@ -164,10 +170,10 @@ export default function DashboardPage() {
                       order.status === "pending"
                         ? "bg-yellow-500/30 text-yellow-200"
                         : order.status === "processing"
-                        ? "bg-blue-500/30 text-blue-200"
-                        : order.status === "completed"
-                        ? "bg-green-500/30 text-green-200"
-                        : "bg-red-500/30 text-red-200"
+                          ? "bg-blue-500/30 text-blue-200"
+                          : order.status === "completed"
+                            ? "bg-green-500/30 text-green-200"
+                            : "bg-red-500/30 text-red-200"
                     }`}
                   >
                     {order.status.toUpperCase()}
@@ -195,13 +201,26 @@ export default function DashboardPage() {
                       {order.pets.map((pet) => (
                         <div
                           key={pet.id}
-                          className="flex justify-between items-center text-gray-200"
+                          className="flex justify-between items-center text-gray-200 gap-4"
                         >
-                          <div>
-                            <p className="font-medium">{pet.name}</p>
-                            <p className="text-sm text-gray-400">
-                              {pet.species} • {pet.status}
-                            </p>
+                          <div className="flex items-center gap-4">
+                            {pet.image_url && (
+                              <img
+                                src={pet.image_url}
+                                alt={pet.name}
+                                className="w-12 h-12 rounded-lg object-cover"
+                              />
+                            )}
+                            <div>
+                              <p className="font-medium">{pet.name}</p>
+                              <p className="text-sm text-gray-400">
+                                {pet.species} • {pet.breed} • Age: {pet.age} •
+                                Gender: {pet.gender}
+                              </p>
+                              <p className="text-sm text-gray-400">
+                                Status: {pet.status}
+                              </p>
+                            </div>
                           </div>
                           <p className="font-semibold">NPR {pet.price}</p>
                         </div>
@@ -217,9 +236,9 @@ export default function DashboardPage() {
                       <span>🛍️</span> Products
                     </h4>
                     <div className="bg-white/5 rounded-lg p-4 space-y-2">
-                      {order.products.map((product) => (
+                      {order.products.map((product, index) => (
                         <div
-                          key={product.id}
+                          key={index}
                           className="flex justify-between items-center text-gray-200"
                         >
                           <div>

@@ -14,6 +14,7 @@ interface Product {
   description: string;
   price: number;
   category: string;
+  weight: number;
   stock: number;
   image_url?: string;
   created_at: string;
@@ -92,7 +93,7 @@ export default function MarketplacePage() {
             No products available yet. Check back soon! 🛍️
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 -mt-10 scale-70 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredProducts.map((product) => (
               <div
                 key={product.id}
@@ -124,6 +125,9 @@ export default function MarketplacePage() {
 
                   <p className="text-gray-300 mb-4 line-clamp-2">
                     {product.description || "No description available"}
+                  </p>
+                    <p className="text-gray-300 mb-4 line-clamp-2">
+                    {product.weight || "No description available"}
                   </p>
 
                   <div className="flex justify-between items-center mb-4">

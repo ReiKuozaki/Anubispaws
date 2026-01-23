@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useUser } from "@/app/Context/UserContext";
+import { GravityStarsBackground } from '@/components/background/gravity-stars';
 
 interface PetOrder {
   id: number;
@@ -138,153 +139,176 @@ export default function DashboardPage() {
     );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 pt-32 px-4">
-      <div className="max-w-5xl mx-auto">
-        <UserProfile user={user} onSave={handleProfileUpdate} />
+    <div className="relative min-h-screen overflow-hidden">
+      {/* 🌌 Background */}
+      <div className="absolute inset-0 -z-10 pointer-events-none">
+        <GravityStarsBackground />
+      </div>
 
-        <h2 className="text-2xl text-white font-semibold mb-4">Your Orders</h2>
+      {/* 📦 Page Content */}
+      <div className="min-h-screen pt-32 px-4">
+        <div className="max-w-5xl mx-auto relative z-10">
+          <UserProfile user={user} onSave={handleProfileUpdate} />
 
-        {orders.length === 0 ? (
-          <p className="text-gray-300">You have no orders yet.</p>
-        ) : (
-          orders.map((order) => (
-            <div key={order.id} className="bg-white/10 rounded-xl p-6 mb-6">
-              <div className="flex justify-between items-center mb-4">
-                <div>
-                  <h3 className="text-xl text-white font-semibold">
-                    Order #{order.id}
-                  </h3>
-                  <p className="text-gray-400 text-sm mt-1">
-                    {new Date(order.created_at).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span
-                    className={`px-3 py-1 rounded text-sm font-semibold ${
-                      order.status === "pending"
-                        ? "bg-yellow-500/30 text-yellow-200"
-                        : order.status === "processing"
-                          ? "bg-blue-500/30 text-blue-200"
-                          : order.status === "completed"
-                            ? "bg-green-500/30 text-green-200"
-                            : "bg-red-500/30 text-red-200"
-                    }`}
-                  >
-                    {order.status.toUpperCase()}
-                  </span>
-                  {order.status === "pending" && (
-                    <button
-                      onClick={() => handleCancelOrder(order.id)}
-                      className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-semibold transition"
-                    >
-                      Cancel Order
-                    </button>
-                  )}
-                </div>
-              </div>
+          <h2 className="text-2xl text-white font-semibold mb-4">
+            Your Orders
+          </h2>
 
-              {/* Order Items */}
-              <div className="space-y-4">
-                {/* Pets */}
-                {order.pets && order.pets.length > 0 && (
+          {orders.length === 0 ? (
+            <p className="text-gray-300">You have no orders yet.</p>
+          ) : (
+            orders.map((order) => (
+              <div
+                key={order.id}
+                className="bg-white/10 rounded-xl p-6 mb-6"
+              >
+                {/* Order Header */}
+                <div className="flex justify-between items-center mb-4">
                   <div>
-                    <h4 className="text-white font-semibold mb-2 flex items-center gap-2">
-                      <span>🐾</span> Pet Adoptions
-                    </h4>
-                    <div className="bg-white/5 rounded-lg p-4 space-y-2">
-                      {order.pets.map((pet) => (
-                        <div
-                          key={pet.id}
-                          className="flex justify-between items-center text-gray-200 gap-4"
-                        >
-                          <div className="flex items-center gap-4">
-                            {pet.image_url && (
-                              <img
-                                src={pet.image_url}
-                                alt={pet.name}
-                                className="w-12 h-12 rounded-lg object-cover"
-                              />
-                            )}
-                            <div>
-                              <p className="font-medium">{pet.name}</p>
-                              <p className="text-sm text-gray-400">
-                                {pet.species} • {pet.breed} • Age: {pet.age} •
-                                Gender: {pet.gender}
-                              </p>
-                              <p className="text-sm text-gray-400">
-                                Status: {pet.status}
-                              </p>
-                            </div>
-                          </div>
-                          <p className="font-semibold">NPR {pet.price}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Products */}
-                {order.products && order.products.length > 0 && (
-                  <div>
-                    <h4 className="text-white font-semibold mb-2 flex items-center gap-2">
-                      <span>🛍️</span> Products
-                    </h4>
-                    <div className="bg-white/5 rounded-lg p-4 space-y-2">
-                      {order.products.map((product, index) => (
-                        <div
-                          key={index}
-                          className="flex justify-between items-center text-gray-200"
-                        >
-                          <div>
-                            <p className="font-medium">{product.name}</p>
-                            <p className="text-sm text-gray-400">
-                              Quantity: {product.quantity}
-                            </p>
-                          </div>
-                          <p className="font-semibold">NPR {product.price}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Order Summary */}
-              <div className="mt-6 pt-4 border-t border-white/20">
-                {order.shipping_address && (
-                  <p className="text-gray-300 text-sm mb-2">
-                    <span className="font-semibold">Shipping:</span>{" "}
-                    {order.shipping_address}
-                  </p>
-                )}
-                {order.payment_method && (
-                  <p className="text-gray-300 text-sm mb-2">
-                    <span className="font-semibold">Payment:</span>{" "}
-                    {order.payment_method}
-                  </p>
-                )}
-                <div className="flex justify-end mt-4">
-                  <div className="text-right">
-                    <p className="text-gray-400 text-sm">Total Amount</p>
-                    <p className="text-white font-bold text-2xl">
-                      NPR {order.total_amount}
+                    <h3 className="text-xl text-white font-semibold">
+                      Order #{order.id}
+                    </h3>
+                    <p className="text-gray-400 text-sm mt-1">
+                      {new Date(order.created_at).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
                     </p>
                   </div>
+
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={`px-3 py-1 rounded text-sm font-semibold ${
+                        order.status === "pending"
+                          ? "bg-yellow-500/30 text-yellow-200"
+                          : order.status === "processing"
+                          ? "bg-blue-500/30 text-blue-200"
+                          : order.status === "completed"
+                          ? "bg-green-500/30 text-green-200"
+                          : "bg-red-500/30 text-red-200"
+                      }`}
+                    >
+                      {order.status.toUpperCase()}
+                    </span>
+
+                    {order.status === "pending" && (
+                      <button
+                        onClick={() => handleCancelOrder(order.id)}
+                        className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-semibold transition"
+                      >
+                        Cancel Order
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Order Items */}
+                <div className="space-y-4">
+                  {/* Pets */}
+                  {order.pets?.length > 0 && (
+                    <div>
+                      <h4 className="text-white font-semibold mb-2 flex items-center gap-2">
+                        <span>🐾</span> Pet Adoptions
+                      </h4>
+                      <div className="bg-white/5 rounded-lg p-4 space-y-2">
+                        {order.pets.map((pet) => (
+                          <div
+                            key={pet.id}
+                            className="flex justify-between items-center text-gray-200 gap-4"
+                          >
+                            <div className="flex items-center gap-4">
+                              {pet.image_url && (
+                                <img
+                                  src={pet.image_url}
+                                  alt={pet.name}
+                                  className="w-12 h-12 rounded-lg object-cover"
+                                />
+                              )}
+                              <div>
+                                <p className="font-medium">{pet.name}</p>
+                                <p className="text-sm text-gray-400">
+                                  {pet.species} • {pet.breed} • Age: {pet.age} •
+                                  Gender: {pet.gender}
+                                </p>
+                                <p className="text-sm text-gray-400">
+                                  Status: {pet.status}
+                                </p>
+                              </div>
+                            </div>
+                            <p className="font-semibold">
+                              NPR {pet.price}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Products */}
+                  {order.products?.length > 0 && (
+                    <div>
+                      <h4 className="text-white font-semibold mb-2 flex items-center gap-2">
+                        <span>🛍️</span> Products
+                      </h4>
+                      <div className="bg-white/5 rounded-lg p-4 space-y-2">
+                        {order.products.map((product, index) => (
+                          <div
+                            key={index}
+                            className="flex justify-between items-center text-gray-200"
+                          >
+                            <div>
+                              <p className="font-medium">{product.name}</p>
+                              <p className="text-sm text-gray-400">
+                                Quantity: {product.quantity}
+                              </p>
+                            </div>
+                            <p className="font-semibold">
+                              NPR {product.price}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Order Summary */}
+                <div className="mt-6 pt-4 border-t border-white/20">
+                  {order.shipping_address && (
+                    <p className="text-gray-300 text-sm mb-2">
+                      <span className="font-semibold">Shipping:</span>{" "}
+                      {order.shipping_address}
+                    </p>
+                  )}
+
+                  {order.payment_method && (
+                    <p className="text-gray-300 text-sm mb-2">
+                      <span className="font-semibold">Payment:</span>{" "}
+                      {order.payment_method}
+                    </p>
+                  )}
+
+                  <div className="flex justify-end mt-4">
+                    <div className="text-right">
+                      <p className="text-gray-400 text-sm">Total Amount</p>
+                      <p className="text-white font-bold text-2xl">
+                        NPR {order.total_amount}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))
-        )}
+            ))
+          )}
+        </div>
       </div>
     </div>
   );
 }
+
 
 function UserProfile({ user, onSave }: { user: any; onSave: (name: string, image: string) => void }) {
   const [editMode, setEditMode] = useState(false);

@@ -85,11 +85,11 @@ export default function AdoptionPage() {
 
         {/* Pets Grid */}
         {filteredPets.length === 0 ? (
-          <div className="text-center text-white text-xl">
+          <div className="text-center text-white text-sm">
             No pets available for adoption yet. Check back soon! 🐾
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 -mt-10 scale-70 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredPets.map((pet) => (
               <div
                 key={pet.id}

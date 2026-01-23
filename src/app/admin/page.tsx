@@ -568,6 +568,7 @@ function ProductsManager() {
     category: "food",
     stock: "0",
     image_url: "",
+    weight: "0", 
   });
 
   useEffect(() => {
@@ -607,10 +608,12 @@ function ProductsManager() {
           category: formData.category,
           stock: parseInt(formData.stock),
           image_url: formData.image_url,
+          weight: parseFloat(formData.weight),
         }),
       });
 
       if (res.ok) {
+        
         alert("Product added successfully!");
         setShowAddForm(false);
         setFormData({
@@ -620,6 +623,7 @@ function ProductsManager() {
           category: "food",
           stock: "0",
           image_url: "",
+          weight: "0", 
         });
         fetchProducts();
       } else {
@@ -701,7 +705,7 @@ function ProductsManager() {
               onChange={(e) =>
                 setFormData({ ...formData, category: e.target.value })
               }
-              className="p-3 rounded bg-white/10 text-white border border-white/20"
+              className="p-3 rounded bg-white/10 text-black border border-white/20"
             >
               <option value="food">Food</option>
               <option value="toys">Toys</option>
@@ -735,6 +739,18 @@ function ProductsManager() {
               required
             />
           </div>
+              <input
+              type="number"
+              placeholder="Weight (kg)"
+              value={formData.weight}
+              onChange={(e) =>
+                setFormData({ ...formData, weight: e.target.value })
+              }
+              className="p-3 mt-4 rounded bg-white/10 text-white border border-white/20"
+              step="0.01"
+              min="0"
+              required
+            />
 
           {/* Image URL Input */}
           <input
@@ -780,6 +796,7 @@ function ProductsManager() {
               <th className="px-4 py-3 text-left">Category</th>
               <th className="px-4 py-3 text-left">Price</th>
               <th className="px-4 py-3 text-left">Stock</th>
+              <th className="px-4 py-3 text-left">Weight</th>
               <th className="px-4 py-3 text-center">Actions</th>
             </tr>
           </thead>
@@ -807,6 +824,7 @@ function ProductsManager() {
                 <td className="px-4 py-3">{product.category}</td>
                 <td className="px-4 py-3">${product.price}</td>
                 <td className="px-4 py-3">{product.stock}</td>
+                <td className="px-4 py-3">{product.weight}</td>
                 <td className="px-4 py-3 text-center">
                   <button
                     onClick={() => deleteProduct(product.id)}
@@ -830,10 +848,53 @@ function OrdersManager() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingOrder, setEditingOrder] = useState<number | null>(null);
+  const [searchEmail, setSearchEmail] = useState("");
+  const [searchDate, setSearchDate] = useState("");
+
+  const [appliedEmail, setAppliedEmail] = useState("");
+  const [appliedDate, setAppliedDate] = useState("");
+
+
 
   useEffect(() => {
     fetchOrders();
   }, []);
+  const applyFilters = () => {
+    setAppliedEmail(searchEmail);
+    setAppliedDate(searchDate);
+  };
+
+  const resetFilters = () => {
+    setSearchEmail("");
+    setSearchDate("");
+    setAppliedEmail("");
+    setAppliedDate("");
+  };
+
+  const filteredOrders = orders.filter((order) => {
+    const emailActive = appliedEmail.trim() !== "";
+    const dateActive = appliedDate !== "";
+
+    const emailMatch =
+      emailActive &&
+      order.user_email
+        ?.toLowerCase()
+        .includes(appliedEmail.toLowerCase());
+
+    const orderDate = new Date(order.created_at)
+      .toISOString()
+      .slice(0, 10); // YYYY-MM-DD
+
+    const dateMatch = dateActive && orderDate === appliedDate;
+
+    if (emailActive && dateActive) return emailMatch && dateMatch;
+    if (emailActive) return emailMatch;
+    if (dateActive) return dateMatch;
+
+    return true;
+  });
+
+
 
   const fetchOrders = async () => {
     try {
@@ -938,9 +999,52 @@ const setOrderPending = async (id: number) => {
   return (
     <div>
       <h2 className="text-3xl font-bold text-white mb-6">Orders Management</h2>
+      <div className="flex flex-wrap gap-4 mb-6 items-end">
+        
+  {/* Email */}
+  <div>
+    <label className="block text-sm text-gray-300 mb-1">User Email</label>
+    <input
+      type="text"
+      placeholder="example@gmail.com"
+      value={searchEmail}
+      onChange={(e) => setSearchEmail(e.target.value)}
+      className="px-4 py-2 rounded-lg bg-white/10 text-white"
+    />
+  </div>
+
+  {/* Date */}
+  <div>
+    <label className="block text-sm text-gray-300 mb-1">Order Date</label>
+    <input
+      type="date"
+      value={searchDate}
+      onChange={(e) => setSearchDate(e.target.value)}
+      className="px-4 py-2 rounded-lg bg-white/10 text-white"
+    />
+  </div>
+
+  {/* Search */}
+  <button
+    onClick={applyFilters}
+    className="px-6 py-2 bg-blue-500 hover:bg-blue-600 rounded-lg text-white"
+  >
+    Search
+  </button>
+
+  {/* Reset */}
+  <button
+    onClick={resetFilters}
+    className="px-6 py-2 bg-red-500/20 hover:bg-red-500/30 rounded-lg text-white"
+  >
+    Reset
+  </button>
+</div>
+
+
       <div className="overflow-x-auto">
         <table className="w-full text-white">
-          <thead className="bg-white/5">
+          <thead>
             <tr>
               <th className="px-4 py-3 text-left">Order ID</th>
               <th className="px-4 py-3 text-left">User</th>
@@ -950,49 +1054,59 @@ const setOrderPending = async (id: number) => {
               <th className="px-4 py-3 text-center">Actions</th>
             </tr>
           </thead>
-          <tbody>
-            {orders.map((order) => (
-              <tr key={order.id} className="border-t border-white/10 hover:bg-white/5">
+<tbody>
+  {filteredOrders.map((order) => (
+              <tr
+                key={order.id}
+                className="border-t border-white/10 hover:bg-white/5"
+              >
                 <td className="px-4 py-3">#{order.id}</td>
                 <td className="px-4 py-3">{order.user_email || "Unknown"}</td>
-                <td className="px-4 py-3 font-semibold">NPR {order.total_amount}</td>
+                <td className="px-4 py-3 font-semibold">
+                  NPR {order.total_amount}
+                </td>
                 <td className="px-4 py-3 capitalize">{order.status}</td>
-                <td className="px-4 py-3">{new Date(order.created_at).toLocaleDateString()}</td>
+                <td className="px-4 py-3">
+                  {new Date(order.created_at).toLocaleDateString()}
+                </td>
                 <td className="px-4 py-3 text-center relative">
                   <button
-                    onClick={() => setEditingOrder(editingOrder === order.id ? null : order.id)}
+                    onClick={() =>
+                      setEditingOrder(
+                        editingOrder === order.id ? null : order.id,
+                      )
+                    }
                     className="px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded-lg"
                   >
                     Edit
                   </button>
 
                   {editingOrder === order.id && (
-  <div className="absolute right-0 mt-2 bg-gray-900 border border-white/20 rounded-lg shadow-lg z-10">
-    <button
-      onClick={() => approveOrder(order.id)}
-      className="block w-full text-left px-4 py-2 hover:bg-white/10"
-    >
-      ✅ Approve (Completed)
-    </button>
+                    <div className="absolute right-0 mt-2 bg-gray-900 border border-white/20 rounded-lg shadow-lg z-10">
+                      <button
+                        onClick={() => approveOrder(order.id)}
+                        className="block w-full text-left px-4 py-2 hover:bg-white/10"
+                      >
+                        ✅ Approve (Completed)
+                      </button>
 
-    <button
-      onClick={() => deleteOrder(order.id)}
-      className="block w-full text-left px-4 py-2 text-red-400 hover:bg-red-500/20"
-    >
-      🗑 Delete
-    </button>
+                      <button
+                        onClick={() => deleteOrder(order.id)}
+                        className="block w-full text-left px-4 py-2 text-red-400 hover:bg-red-500/20"
+                      >
+                        🗑 Delete
+                      </button>
 
-    {order.status !== "pending" && (
-      <button
-        onClick={() => setOrderPending(order.id)}
-        className="block w-full text-left px-4 py-2 text-yellow-400 hover:bg-white/10"
-      >
-        ⏳ Set Pending
-      </button>
-    )}
-  </div>
-)}
-
+                      {order.status !== "pending" && (
+                        <button
+                          onClick={() => setOrderPending(order.id)}
+                          className="block w-full text-left px-4 py-2 text-yellow-400 hover:bg-white/10"
+                        >
+                          ⏳ Set Pending
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </td>
               </tr>
             ))}

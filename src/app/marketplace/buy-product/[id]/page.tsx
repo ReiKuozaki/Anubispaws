@@ -11,6 +11,7 @@ interface Product {
   price: number;
   category: string;
   stock: number;
+  weight: number;
   image_url?: string;
 }
 
@@ -41,7 +42,7 @@ useEffect(() => {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || "Failed to fetch product");
+        throw new Error(data.error || "Failed to product");
       }
 
       return data;
@@ -106,6 +107,7 @@ useEffect(() => {
   }
 
   const total = product.price * quantity;
+  const Weighttotal = product.weight * quantity;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 pt-32 px-4 pb-16">
@@ -137,6 +139,9 @@ useEffect(() => {
               </p>
               <p>
                 <b>Price:</b> NPR {product.price}
+              </p>
+              <p>
+                <b>Weight(kg)</b> {product.weight}
               </p>
               <p>
                 <b>Available Stock:</b> {product.stock}
@@ -211,6 +216,11 @@ useEffect(() => {
                 <option value="esewa">eSewa</option>
                 <option value="khalti">Khalti</option>
               </select>
+            </div>
+            <div className=" p-4 mt-6">
+              <p className="text-white font-semibold text-lg">
+                Total Weight: Kg {Weighttotal.toFixed(2)}
+              </p>
             </div>
 
             <div className="bg-blue-500/20 border border-blue-500/50 rounded-lg p-4 mt-6">

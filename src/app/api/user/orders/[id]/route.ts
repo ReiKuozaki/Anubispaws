@@ -43,35 +43,50 @@ export async function PATCH(
         { status: 400 }
       );
 
-    /* ───────── Reverse pets ───────── */
-    let pets: any[] = [];
-    if (order.pets) {
-      pets = typeof order.pets === "string"
-        ? JSON.parse(order.pets)
-        : order.pets;
-    }
+/* ───────── Reverse pets ───────── */
+let pets: any[] = [];
 
-    for (const pet of pets) {
-      await pool.execute(
-        "UPDATE pets SET status='available', owner_id=NULL WHERE id=?",
-        [pet.id]
-      );
-    }
+if (order.order_pets) {
+  pets =
+    typeof order.order_pets === "string"
+      ? JSON.parse(order.order_pets)
+      : order.order_pets;
+}
 
-    /* ───────── Reverse products ───────── */
-    let products: any[] = [];
-    if (order.products) {
-      products = typeof order.products === "string"
-        ? JSON.parse(order.products)
-        : order.products;
-    }
+for (const pet of pets) {
+  await pool.execute(
+    "UPDATE pets SET status='available', owner_id=NULL WHERE id=?",
+    [pet.id]
+  );
+}
 
-    for (const product of products) {
-      await pool.execute(
-        "UPDATE products SET stock = stock + ? WHERE id=?",
-        [product.quantity, product.id]
-      );
-    }
+
+/* ───────── Reverse products ───────── */
+let products: any[] = [];
+
+if (order.order_products) {
+  products =
+    typeof order.order_products === "string"
+      ? JSON.parse(order.order_products)
+      : order.order_products;
+}
+
+for (const item of products) {
+  const productId = Number(item.id);
+  const qty = Number(item.quantity);
+
+  if (isNaN(productId) || isNaN(qty)) continue;
+
+  await pool.execute(
+    `
+    UPDATE products
+    SET stock = stock + ?, total_sold = GREATEST(total_sold - ?, 0)
+    WHERE id = ?
+    `,
+    [qty, qty, productId]
+  );
+}
+
 
     /* ───────── Cancel order ───────── */
     await pool.execute(

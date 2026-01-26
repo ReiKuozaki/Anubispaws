@@ -32,10 +32,12 @@ export default function AdoptPetPage({
   const [loading, setLoading] = useState(true);
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-
+ const [customerName, setCustomerName] = useState("");
+  const [customerEmail, setCustomerEmail] = useState("");
   const [formData, setFormData] = useState({
     contact_phone: "",
     address: "",
+    shipping_address: "",
     reason: "",
     experience: "",
   });
@@ -93,7 +95,10 @@ export default function AdoptPetPage({
       body: JSON.stringify({
         pets: [{ id: petId }],
         products: [], // nothing here for pets
-        shipping_address: formData.address,
+        customer_name: customerName,
+        customer_email: customerEmail,
+        contact_phone: formData.contact_phone,
+      shipping_address: formData.shipping_address,
         payment_method: "Cash on Delivery", // or from user input
       }),
     });
@@ -157,17 +162,25 @@ export default function AdoptPetPage({
             onSubmit={handleSubmit}
             className="bg-white/10 rounded-xl p-6 space-y-4"
           >
+          <div className="space-y-4 mb-6">
             <input
-              disabled
-              value={user?.name ?? ""}
-              className="w-full p-3 bg-white/20 text-white rounded"
+              type="text"
+              placeholder="Your name"
+              value={customerName}
+              onChange={(e) => setCustomerName(e.target.value)}
+              className="w-full p-3 rounded bg-white/10 text-white border border-white/20"
+              required
             />
 
             <input
-              disabled
-              value={user?.email ?? ""}
-              className="w-full p-3 bg-white/20 text-white rounded"
+              type="email"
+              placeholder="Your email"
+              value={customerEmail}
+              onChange={(e) => setCustomerEmail(e.target.value)}
+              className="w-full p-3 rounded bg-white/10 text-white border border-white/20"
+              required
             />
+          </div>
 
             <input
               required
@@ -183,9 +196,9 @@ export default function AdoptPetPage({
               required
               placeholder="Address"
               className="w-full p-3 bg-white/10 text-white rounded"
-              value={formData.address}
+              value={formData.shipping_address}
               onChange={(e) =>
-                setFormData({ ...formData, address: e.target.value })
+                setFormData({ ...formData, shipping_address: e.target.value })
               }
             />
 

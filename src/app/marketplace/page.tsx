@@ -37,7 +37,7 @@ export default function MarketplacePage() {
       const data = await res.json();
       setProducts(data.products || []);
     } catch (err) {
-      console.error("Failed to fetch products:", err);
+      console.error("Failed to fetch products", err);
     } finally {
       setLoading(false);
     }
@@ -126,13 +126,13 @@ export default function MarketplacePage() {
                   <p className="text-gray-300 mb-4 line-clamp-2">
                     {product.description || "No description available"}
                   </p>
-                    <p className="text-gray-300 mb-4 line-clamp-2">
+                    <p className="text-gray-300 mb-4 line-clamp-2">Weight(kg):
                     {product.weight || "No description available"}
                   </p>
 
                   <div className="flex justify-between items-center mb-4">
                     <span className="text-3xl font-bold text-white">
-                      ${product.price}
+                      NPR{product.price}
                     </span>
                     <span className="text-gray-400">
                       Stock:{" "}

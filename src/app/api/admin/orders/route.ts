@@ -20,9 +20,17 @@ export async function GET(req: NextRequest) {
     const [rows]: any = await pool.execute(`
       SELECT 
         o.id,
+        o.user_id,
         o.total_amount,
         o.status,
         o.created_at,
+        o.order_pets,
+        o.order_products,
+        o.customer_name,
+        o.customer_email,
+        o.contact_phone,
+        o.shipping_address,
+        o.payment_method,
         u.email AS user_email
       FROM orders o
       LEFT JOIN users u ON u.id = o.user_id

@@ -62,7 +62,7 @@ export default function AdoptionPage() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-6xl font-bold text-white mb-4">Find Your New Best Friend</h1>
+          <h2 className="text-6xl font-bold text-white mb-4">Find Your New Best Friend</h2>
           <p className="text-xl text-gray-300">Give a loving pet a forever home</p>
         </div>
 

@@ -24,14 +24,17 @@ export default function BuyProductPage() {
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
+  const [customerName, setCustomerName] = useState("");
+  const [customerEmail, setCustomerEmail] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [formData, setFormData] = useState({
+    user_name:"",
+    email:"",
     shipping_address: "",
     contact_phone: "",
     payment_method: "cash_on_delivery",
   });
-  const [submitting, setSubmitting] = useState(false);
-
 useEffect(() => {
   if (!productId) return;
 
@@ -56,10 +59,10 @@ useEffect(() => {
     })
     .finally(() => setLoading(false));
 }, [productId]);
+  const handleBuy = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setSubmitting(true);
 
-
-
-  const handleBuy = async () => {
   try {
     const token = localStorage.getItem("token");
     if (!token) throw new Error("Not authenticated");
@@ -73,21 +76,29 @@ useEffect(() => {
       body: JSON.stringify({
         pets: [],
         products: [{ id: productId, quantity: 1 }],
-        shipping_address: "User address here",
-        payment_method: "Cash on Delivery",
+        customer_name: customerName,
+        customer_email: customerEmail,
+        contact_phone: formData.contact_phone,
+
+      shipping_address: formData.shipping_address,
+        payment_method: "Cash on Delivery", // or from user input
       }),
     });
 
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Failed to buy product");
+    if (!res.ok) throw new Error(data.error || "Failed to create order");
 
     alert("Product purchased!");
-    router.push("/dashboard");
+    router.push("/dashboard"); // redirect to dashboard to see the order
   } catch (err: any) {
     console.error(err);
-    alert(err.message || "Failed to buy product");
+    alert(err.message || "Failed to submit request");
+  } finally {
+    setSubmitting(false);
   }
 };
+ 
+
 
 
   if (loading) {
@@ -156,18 +167,25 @@ useEffect(() => {
           >
             <h3 className="text-2xl font-bold text-white mb-4">Order Details</h3>
 
+          <div className="space-y-4 mb-6">
             <input
-              disabled
-              value={user?.name ?? ""}
-              className="w-full p-3 bg-white/20 text-white rounded"
+              type="text"
+              placeholder="Your name"
+              value={customerName}
+              onChange={(e) => setCustomerName(e.target.value)}
+              className="w-full p-3 rounded bg-white/10 text-white border border-white/20"
+              required
             />
 
             <input
-              disabled
-              value={user?.email ?? ""}
-              className="w-full p-3 bg-white/20 text-white rounded"
+              type="email"
+              placeholder="Your email"
+              value={customerEmail}
+              onChange={(e) => setCustomerEmail(e.target.value)}
+              className="w-full p-3 rounded bg-white/10 text-white border border-white/20"
+              required
             />
-
+          </div>
             <input
               required
               type="tel"
@@ -209,7 +227,7 @@ useEffect(() => {
                 onChange={(e) =>
                   setFormData({ ...formData, payment_method: e.target.value })
                 }
-                className="w-full p-3 bg-white/10 text-white rounded border border-white/30"
+                className="w-full p-3 bg-white/10 text-black rounded border border-white/30"
               >
                 <option value="cash_on_delivery">Cash on Delivery</option>
                 <option value="bank_transfer">Bank Transfer</option>
@@ -228,6 +246,7 @@ useEffect(() => {
                 Total Amount: NPR {total.toFixed(2)}
               </p>
             </div>
+
 
             <button
               type="submit"

@@ -21,18 +21,23 @@ interface ProductOrder {
   name: string;
   quantity: number;
   price: number;
-
+  image_url?: string;
+  weight?: number;
 }
 
 interface Order {
+  user_id: number;
   id: number;
-  pets: PetOrder[];
-  products: ProductOrder[];
+  order_pets: PetOrder[];
+  order_products: ProductOrder[];
   total_amount: number;
   status: string;
   created_at: string;
   shipping_address?: string;
   payment_method?: string;
+  customer_name: string;
+  customer_email?: string;
+  contact_phone: string;
 }
 
 export default function DashboardPage() {
@@ -168,6 +173,18 @@ export default function DashboardPage() {
                     <h3 className="text-xl text-white font-semibold">
                       Order #{order.id}
                     </h3>
+                    {/* <h3 className="text-xl text-white font-semibold">
+                      User_id: {order.user_id}
+                    </h3> */}
+                    <h3 className="text-xl text-white font-semibold">
+                      👤 Customer Name: {order.customer_name}
+                    </h3>
+                    <h3 className="text-xl text-white font-semibold">
+                      ✉️ Customer email: {order.customer_email}
+                    </h3>
+                    <h3 className="text-xl text-white font-semibold">
+                      📞 Contact Phone: {order.contact_phone}
+                    </h3>
                     <p className="text-gray-400 text-sm mt-1">
                       {new Date(order.created_at).toLocaleDateString("en-US", {
                         year: "numeric",
@@ -208,38 +225,38 @@ export default function DashboardPage() {
                 {/* Order Items */}
                 <div className="space-y-4">
                   {/* Pets */}
-                  {order.pets?.length > 0 && (
+                  {order.order_pets?.length > 0 && (
                     <div>
                       <h4 className="text-white font-semibold mb-2 flex items-center gap-2">
                         <span>🐾</span> Pet Adoptions
                       </h4>
                       <div className="bg-white/5 rounded-lg p-4 space-y-2">
-                        {order.pets.map((pet) => (
+                        {order.order_pets.map((order_pet) => (
                           <div
-                            key={pet.id}
+                            key={order_pet.id}
                             className="flex justify-between items-center text-gray-200 gap-4"
                           >
                             <div className="flex items-center gap-4">
-                              {pet.image_url && (
+                              {order_pet.image_url && (
                                 <img
-                                  src={pet.image_url}
-                                  alt={pet.name}
+                                  src={order_pet.image_url}
+                                  alt={order_pet.name}
                                   className="w-12 h-12 rounded-lg object-cover"
                                 />
                               )}
                               <div>
-                                <p className="font-medium">{pet.name}</p>
+                                <p className="font-medium">{order_pet.name}</p>
                                 <p className="text-sm text-gray-400">
-                                  {pet.species} • {pet.breed} • Age: {pet.age} •
-                                  Gender: {pet.gender}
+                                  Species: {order_pet.species} • Breed: {order_pet.breed} • Age: {order_pet.age} •
+                                  Gender: {order_pet.gender}
                                 </p>
                                 <p className="text-sm text-gray-400">
-                                  Status: {pet.status}
+                                  Status: {order_pet.status}
                                 </p>
                               </div>
                             </div>
                             <p className="font-semibold">
-                              NPR {pet.price}
+                              NPR {order_pet.price}
                             </p>
                           </div>
                         ))}
@@ -248,27 +265,39 @@ export default function DashboardPage() {
                   )}
 
                   {/* Products */}
-                  {order.products?.length > 0 && (
+                  {order.order_products?.length > 0 && (
                     <div>
                       <h4 className="text-white font-semibold mb-2 flex items-center gap-2">
                         <span>🛍️</span> Products
                       </h4>
                       <div className="bg-white/5 rounded-lg p-4 space-y-2">
-                        {order.products.map((product, index) => (
+                        {order.order_products.map((order_products, index) => (
                           <div
                             key={index}
                             className="flex justify-between items-center text-gray-200"
                           >
+                              
                             <div>
-                              <p className="font-medium">{product.name}</p>
+                              {order_products.image_url && (
+                                <img
+                                  src={order_products.image_url}
+                                  alt={order_products.name}
+                                  className="w-12 h-12 rounded-lg object-cover"
+                                />
+                              )}
+                              <p className="font-medium">{order_products.name}</p>
                               <p className="text-sm text-gray-400">
-                                Quantity: {product.quantity}
+                                Quantity: {order_products.quantity}
+                              </p>
+                              <p className="text-sm text-gray-400">
+                                Weight (KG): {order_products.weight}
                               </p>
                             </div>
                             <p className="font-semibold">
-                              NPR {product.price}
+                              NPR {order_products.price}
                             </p>
                           </div>
+                          
                         ))}
                       </div>
                     </div>

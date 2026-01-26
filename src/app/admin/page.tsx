@@ -219,7 +219,7 @@ function PetsManager() {
     description: "",
     status: "available",
     image_url: "",
-    price: "0", // ✅ FIX
+    price: "", // ✅ FIX
   });
 
 
@@ -278,7 +278,7 @@ function PetsManager() {
           description: "",
           status: "available",
           image_url: "",
-          price: "0", // ✅ FIX
+          price: "", // ✅ FIX
         });
 
         fetchPets();
@@ -564,11 +564,11 @@ function ProductsManager() {
   const [formData, setFormData] = useState({
     name: "",
     description: "",
-    price: "0",
+    price: "",
     category: "food",
-    stock: "0",
+    stock: "",
     image_url: "",
-    weight: "0", 
+    weight: "", 
   });
 
   useEffect(() => {
@@ -619,11 +619,11 @@ function ProductsManager() {
         setFormData({
           name: "",
           description: "",
-          price: "0",
+          price: "",
           category: "food",
-          stock: "0",
+          stock: "",
           image_url: "",
-          weight: "0", 
+          weight: "", 
         });
         fetchProducts();
       } else {
@@ -822,7 +822,7 @@ function ProductsManager() {
                 <td className="px-4 py-3">{product.id}</td>
                 <td className="px-4 py-3">{product.name}</td>
                 <td className="px-4 py-3">{product.category}</td>
-                <td className="px-4 py-3">${product.price}</td>
+                <td className="px-4 py-3">NPR {product.price}</td>
                 <td className="px-4 py-3">{product.stock}</td>
                 <td className="px-4 py-3">{product.weight}</td>
                 <td className="px-4 py-3 text-center">
@@ -849,10 +849,12 @@ function OrdersManager() {
   const [loading, setLoading] = useState(true);
   const [editingOrder, setEditingOrder] = useState<number | null>(null);
   const [searchEmail, setSearchEmail] = useState("");
-  const [searchDate, setSearchDate] = useState("");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
 
   const [appliedEmail, setAppliedEmail] = useState("");
-  const [appliedDate, setAppliedDate] = useState("");
+  const [appliedFromDate, setAppliedFromDate] = useState("");
+  const [appliedToDate, setAppliedToDate] = useState("");
 
 
 
@@ -860,40 +862,42 @@ function OrdersManager() {
     fetchOrders();
   }, []);
   const applyFilters = () => {
-    setAppliedEmail(searchEmail);
-    setAppliedDate(searchDate);
-  };
+  setAppliedEmail(searchEmail);
+  setAppliedFromDate(fromDate);
+  setAppliedToDate(toDate);
+};
 
-  const resetFilters = () => {
-    setSearchEmail("");
-    setSearchDate("");
-    setAppliedEmail("");
-    setAppliedDate("");
-  };
+const resetFilters = () => {
+  setSearchEmail("");
+  setFromDate("");
+  setToDate("");
 
-  const filteredOrders = orders.filter((order) => {
-    const emailActive = appliedEmail.trim() !== "";
-    const dateActive = appliedDate !== "";
+  setAppliedEmail("");
+  setAppliedFromDate("");
+  setAppliedToDate("");
+};
+const filteredOrders = orders.filter((order) => {
+  const emailActive = appliedEmail.trim() !== "";
+  const fromActive = appliedFromDate !== "";
+  const toActive = appliedToDate !== "";
 
+  // Email match
     const emailMatch =
-      emailActive &&
-      order.user_email
+      !emailActive ||
+      order.customer_email
         ?.toLowerCase()
         .includes(appliedEmail.toLowerCase());
 
-    const orderDate = new Date(order.created_at)
-      .toISOString()
-      .slice(0, 10); // YYYY-MM-DD
+  // Order date (YYYY-MM-DD)
+  const orderDate = new Date(order.created_at)
+    .toISOString()
+    .slice(0, 10);
 
-    const dateMatch = dateActive && orderDate === appliedDate;
+  const fromMatch = !fromActive || orderDate >= appliedFromDate;
+  const toMatch = !toActive || orderDate <= appliedToDate;
 
-    if (emailActive && dateActive) return emailMatch && dateMatch;
-    if (emailActive) return emailMatch;
-    if (dateActive) return dateMatch;
-
-    return true;
-  });
-
+  return emailMatch && fromMatch && toMatch;
+});
 
 
   const fetchOrders = async () => {
@@ -1014,14 +1018,26 @@ const setOrderPending = async (id: number) => {
   </div>
 
   {/* Date */}
+  {/* From Date */}
   <div>
-    <label className="block text-sm text-gray-300 mb-1">Order Date</label>
-    <input
-      type="date"
-      value={searchDate}
-      onChange={(e) => setSearchDate(e.target.value)}
-      className="px-4 py-2 rounded-lg bg-white/10 text-white"
-    />
+  <label className="block text-sm text-gray-300 mb-1">From Date</label>
+  <input
+    type="date"
+    value={fromDate}
+    onChange={(e) => setFromDate(e.target.value)}
+    className="px-4 py-2 rounded-lg bg-white/10 text-white"
+  />
+  </div>
+
+  {/* To Date */}
+  <div>
+  <label className="block text-sm text-gray-300 mb-1">To Date</label>
+  <input
+    type="date"
+    value={toDate}
+    onChange={(e) => setToDate(e.target.value)}
+    className="px-4 py-2 rounded-lg bg-white/10 text-white"
+  />
   </div>
 
   {/* Search */}
@@ -1047,7 +1063,11 @@ const setOrderPending = async (id: number) => {
           <thead>
             <tr>
               <th className="px-4 py-3 text-left">Order ID</th>
-              <th className="px-4 py-3 text-left">User</th>
+              <th className="px-4 py-3 text-left">User_ID</th>
+              {/* <th className="px-4 py-3 text-left">User</th> */}
+              <th className="px-4 py-3 text-left">Name</th>
+              <th className="px-4 py-3 text-left">Customer email</th>
+              <th className="px-4 py-3 text-left">Contact</th>
               <th className="px-4 py-3 text-left">Total</th>
               <th className="px-4 py-3 text-left">Status</th>
               <th className="px-4 py-3 text-left">Date</th>
@@ -1061,7 +1081,11 @@ const setOrderPending = async (id: number) => {
                 className="border-t border-white/10 hover:bg-white/5"
               >
                 <td className="px-4 py-3">#{order.id}</td>
-                <td className="px-4 py-3">{order.user_email || "Unknown"}</td>
+                <td className="px-4 py-3">{order.user_id}</td>
+                {/* <td className="px-4 py-3">{order.user_email || "Unknown"}</td> */}
+                <td className="px-4 py-3">{order.customer_name}</td>
+                <td className="px-4 py-3">{order.customer_email || "Unknown"}</td>
+                <td className="px-4 py-3">{order.contact_phone}</td>
                 <td className="px-4 py-3 font-semibold">
                   NPR {order.total_amount}
                 </td>

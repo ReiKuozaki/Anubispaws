@@ -59,7 +59,7 @@ export default function Navbar() {
         <div className="ml-1 flex gap-4 items-center">
           {user ? (
             <div className="flex items-center gap-2">
-              {/* Show Admin link only for admin */}
+              {/* Show Admin link only for admin
               {user.email === "prajwalbasnet1943@gmail.com" &&
                 user.role === "admin" && (
                   <Link
@@ -68,14 +68,14 @@ export default function Navbar() {
                   >
                     Admin
                   </Link>
-                )}
+                )} */}
 
-              <img
-                src={user.image || "/images/default-avatar.png"}
+              {/* <img
+                src={user.image || "/images/logo.png"}
                 alt={user.name || user.email}
                 className="w-10 h-10 rounded-full object-cover cursor-pointer"
                 onClick={() => router.push("/dashboard")} // Redirect when clicking avatar
-              />
+              /> */}
 
               {/* Name clickable */}
               <span

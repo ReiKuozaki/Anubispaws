@@ -259,8 +259,18 @@ if (!shipping_address || shipping_address.trim().length < 5) {
       message: "Order created",
       orderId: result.insertId,
     });
-  } catch (err) {
-    console.error("POST order error:", err);
-    return NextResponse.json({ error: "Failed to create order" }, { status: 500 });
+  } 
+
+
+catch (err: any) {
+    console.error("CREATE ORDER ERROR:", err);
+
+    return NextResponse.json(
+      {
+        error: err.message || "Internal server error",
+      },
+      { status: 500 }
+    );
   }
+
 }

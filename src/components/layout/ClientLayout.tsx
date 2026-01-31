@@ -12,7 +12,7 @@ export default function ClientLayout({
     <>
       <Navbar />
       <main>{children}</main>
-      <Footer />
+
     </>
   );
 }

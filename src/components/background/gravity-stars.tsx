@@ -78,7 +78,7 @@ function GravityStarsBackground({
           y: Math.random() * h,
           vx: Math.cos(angle) * speed,
           vy: Math.sin(angle) * speed,
-          size: Math.random() * starsSize + 1,
+          size: Math.random() * starsSize + 2,
           opacity: starsOpacity,
           baseOpacity: starsOpacity,
           mass: Math.random() * 0.5 + 0.5,
@@ -205,7 +205,7 @@ function GravityStarsBackground({
           const dx2 = o.x - p.x;
           const dy2 = o.y - p.y;
           const d = Math.hypot(dx2, dy2);
-          const minD = p.size + o.size + 5;
+          const minD = p.size + o.size + 8;
           if (d < minD && d > 0) {
             if (starsInteractionType === 'bounce') {
               const nx = dx2 / d;

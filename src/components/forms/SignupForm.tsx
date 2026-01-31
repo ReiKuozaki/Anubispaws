@@ -29,7 +29,7 @@ export const SignupForm = () => {
 
       if (data.success) {
         alert("Signup successful! Redirecting to home...");
-        router.push("/home"); // redirect right after signup
+        router.push("/"); // redirect right after signup
       } else {
         alert(data.error || "Signup failed");
       }

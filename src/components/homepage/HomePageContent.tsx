@@ -2,6 +2,7 @@
 
 import React from "react";
 import Image from "next/image";
+import Footer from "@/components/footer/footer";
 import Link from "next/link";
 import { motion, useScroll, useTransform } from "framer-motion";
 import RippleButton from "../animata/button/ripple-button";
@@ -216,6 +217,7 @@ export default function HomePageContent() {
           </motion.div>
         </div>
       </section>
+            <Footer />
     </>
   );
 }

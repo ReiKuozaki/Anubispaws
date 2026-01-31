@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { LoginForm } from "@/components/forms/LoginForm";
 import { SignupForm } from "@/components/forms/SignupForm";
+import { Spotlight } from "@/components/ui/spolight-new";
 
 export default function AuthPage() {
   const searchParams = useSearchParams();
@@ -38,9 +39,10 @@ export default function AuthPage() {
   }, [router]);
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center">
-      <div className="w-full max-w-md bg-white/20 backdrop-blur-lg rounded-2xl p-8">
-        <div className="flex justify-center gap-4 mb-6">
+    <div className="relative min-h-screen  flex items-center justify-center">
+     
+      <div className="w-full max-w-md bg-white/20 backdrop-blur-lg rounded-2xl p-9 mt-15">
+        <div className="flex justify-center  gap-4 mb-6">
           <button
             onClick={() => setActiveTab("login")}
             className={activeTab === "login" ? "font-bold" : ""}
@@ -57,6 +59,7 @@ export default function AuthPage() {
 
         {activeTab === "login" ? <LoginForm /> : <SignupForm />}
       </div>
+       <Spotlight />
     </div>
   );
 }

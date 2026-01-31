@@ -20,13 +20,15 @@ interface Pet {
 export default function AdoptPetPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
-}) {
+  params: { id: string };
+}) 
+  
+ {
   const router = useRouter();
   const { user } = useUser();
 
   // ✅ REQUIRED in Next.js 16
-  const { id: petId } = React.use(params);
+  const petId = params.id;
 
   const [pet, setPet] = useState<Pet | null>(null);
   const [loading, setLoading] = useState(true);
@@ -36,7 +38,7 @@ export default function AdoptPetPage({
   const [customerEmail, setCustomerEmail] = useState("");
   const [formData, setFormData] = useState({
     contact_phone: "",
-    address: "",
+    payment_method: "Cash_on_Delivery",
     shipping_address: "",
     reason: "",
     experience: "",
@@ -59,7 +61,7 @@ export default function AdoptPetPage({
     }
 
     fetchPet();
-  }, [checkingAuth, user, petId]);
+  }, [checkingAuth, user]);
 
   const fetchPet = async () => {
     try {
@@ -78,7 +80,7 @@ export default function AdoptPetPage({
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
   setSubmitting(true);
 
@@ -93,21 +95,29 @@ export default function AdoptPetPage({
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        pets: [{ id: petId }],
-        products: [], // nothing here for pets
-        customer_name: customerName,
-        customer_email: customerEmail,
-        contact_phone: formData.contact_phone,
-      shipping_address: formData.shipping_address,
-        payment_method: "Cash on Delivery", // or from user input
+        pets: [{ id: Number(petId) }], // ✅ force number
+        products: [],
+        customer_name: customerName.trim(),
+        customer_email: customerEmail.trim(),
+        contact_phone: formData.contact_phone.trim(),
+        shipping_address: formData.shipping_address.trim(),
+        payment_method: formData.payment_method.toLowerCase(),
+
+        // // OPTIONAL but recommended (if backend supports it)
+        // adoption_reason: formData.reason.trim(),
+        // adoption_experience: formData.experience?.trim() || null,
       }),
     });
 
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Failed to create order");
+
+    if (!res.ok) {
+      console.error("ORDER ERROR:", data);
+      throw new Error(data.error || "Failed to create order");
+    }
 
     alert("Adoption request submitted!");
-    router.push("/dashboard"); // redirect to dashboard to see the order
+    router.push("/dashboard");
   } catch (err: any) {
     console.error(err);
     alert(err.message || "Failed to submit request");
@@ -162,7 +172,9 @@ export default function AdoptPetPage({
             onSubmit={handleSubmit}
             className="bg-white/10 rounded-xl p-6 space-y-4"
           >
+            <h3 className="text-2xl font-bold text-white mb-4">Order Details</h3>
           <div className="space-y-4 mb-6">
+            <p>Please enter the following details correctly:</p>
             <input
               type="text"
               placeholder="Your name"
@@ -191,7 +203,7 @@ export default function AdoptPetPage({
                 setFormData({ ...formData, contact_phone: e.target.value })
               }
             />
-
+            
             <textarea
               required
               placeholder="Address"
@@ -201,10 +213,23 @@ export default function AdoptPetPage({
                 setFormData({ ...formData, shipping_address: e.target.value })
               }
             />
-
+            <div>
+              <label className="block text-white mb-2">Payment Method</label>
+              <select
+                value={formData.payment_method}
+                onChange={(e) =>
+                  setFormData({ ...formData, payment_method: e.target.value })
+                }
+                className="w-full p-3 bg-white/10 text-black rounded border border-white/30"
+              >
+                <option value="cash_on_delivery">Cash on Delivery</option>
+                {/* <option value="esewa">eSewa</option> */}
+                <option value="khalti">Khalti</option>
+              </select>
+            </div>
             <textarea
               required
-              placeholder="Why adopt?"
+              placeholder="Why this pet?"
               className="w-full p-3 bg-white/10 text-white rounded"
               value={formData.reason}
               onChange={(e) =>

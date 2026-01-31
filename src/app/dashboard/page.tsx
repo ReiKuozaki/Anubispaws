@@ -2,6 +2,9 @@
 
 import React, { useEffect, useState } from "react";
 import { useUser } from "@/app/Context/UserContext";
+import { useRouter } from "next/navigation";
+import { getOrderItemName } from "@/lib/orders/getOrderItemName";
+import { normalizePaymentPayload } from "@/lib/payments/createpayments";
 import { GravityStarsBackground } from '@/components/background/gravity-stars';
 
 interface PetOrder {
@@ -44,9 +47,15 @@ export default function DashboardPage() {
   const { user, setUser } = useUser();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-
+  const router = useRouter();
   useEffect(() => {
     if (!user) return;
+
+  // // 🚨 Admin auto-redirect
+  // if (user.role === "admin") {
+  //   router.replace("/admin");
+  //   return;
+  // }
     fetchUserOrders();
   }, [user]);
 
@@ -130,6 +139,55 @@ export default function DashboardPage() {
       alert("Error updating profile");
     }
   };
+  
+const getPaymentButtonLabel = (method?: string) => {
+  if (!method) return null;
+
+  const normalized = method.toLowerCase();
+
+  if (normalized === "esewa") return " 💳 Pay with eSewa";
+  if (normalized === "khalti") return " 💳 Pay with Khalti";
+
+  return null;
+};
+async function handleOnlinePayment(
+  amount: number,
+  orderId: number,
+  method: "esewa" | "khalti"
+) {
+  const res = await fetch("/api/payments/khalti/initiate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ orderId }),
+  });
+
+  if (!res.ok) {
+    throw new Error("Payment initiation failed");
+  }
+
+  const data = await res.json();
+  window.location.href = data.payment_url;
+
+
+
+  if (method === "khalti") {
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = data.payment_url;
+
+    Object.entries(data.params).forEach(([k, v]: any) => {
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = k;
+      input.value = v;
+      form.appendChild(input);
+    });
+
+    document.body.appendChild(form);
+    form.submit();
+  }
+}
+
 
   if (!user)
     return (
@@ -163,10 +221,7 @@ export default function DashboardPage() {
             <p className="text-gray-300">You have no orders yet.</p>
           ) : (
             orders.map((order) => (
-              <div
-                key={order.id}
-                className="bg-white/10 rounded-xl p-6 mb-6"
-              >
+              <div key={order.id} className="bg-white/10 rounded-xl p-6 mb-6">
                 {/* Order Header */}
                 <div className="flex justify-between items-center mb-4">
                   <div>
@@ -202,10 +257,10 @@ export default function DashboardPage() {
                         order.status === "pending"
                           ? "bg-yellow-500/30 text-yellow-200"
                           : order.status === "processing"
-                          ? "bg-blue-500/30 text-blue-200"
-                          : order.status === "completed"
-                          ? "bg-green-500/30 text-green-200"
-                          : "bg-red-500/30 text-red-200"
+                            ? "bg-blue-500/30 text-blue-200"
+                            : order.status === "completed"
+                              ? "bg-green-500/30 text-green-200"
+                              : "bg-red-500/30 text-red-200"
                       }`}
                     >
                       {order.status.toUpperCase()}
@@ -247,7 +302,8 @@ export default function DashboardPage() {
                               <div>
                                 <p className="font-medium">{order_pet.name}</p>
                                 <p className="text-sm text-gray-400">
-                                  Species: {order_pet.species} • Breed: {order_pet.breed} • Age: {order_pet.age} •
+                                  Species: {order_pet.species} • Breed:{" "}
+                                  {order_pet.breed} • Age: {order_pet.age} •
                                   Gender: {order_pet.gender}
                                 </p>
                                 <p className="text-sm text-gray-400">
@@ -276,7 +332,6 @@ export default function DashboardPage() {
                             key={index}
                             className="flex justify-between items-center text-gray-200"
                           >
-                              
                             <div>
                               {order_products.image_url && (
                                 <img
@@ -285,7 +340,9 @@ export default function DashboardPage() {
                                   className="w-12 h-12 rounded-lg object-cover"
                                 />
                               )}
-                              <p className="font-medium">{order_products.name}</p>
+                              <p className="font-medium">
+                                {order_products.name}
+                              </p>
                               <p className="text-sm text-gray-400">
                                 Quantity: {order_products.quantity}
                               </p>
@@ -297,7 +354,6 @@ export default function DashboardPage() {
                               NPR {order_products.price}
                             </p>
                           </div>
-                          
                         ))}
                       </div>
                     </div>
@@ -327,6 +383,31 @@ export default function DashboardPage() {
                         NPR {order.total_amount}
                       </p>
                     </div>
+                    <div className="gap-3 ml-6">
+                      {/* 💳 Online Payment Button */}
+                      {order.status === "pending" &&
+                      getPaymentButtonLabel(order.payment_method) ? (
+                        <button
+                          onClick={() =>
+                            handleOnlinePayment(
+                              Number(order.total_amount),
+                              order.id,
+                              order.payment_method as "esewa" | "khalti",
+                            )
+                          }
+                          className="px-6 py-3 rounded-lg font-semibold text-white bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 transition shadow-lg"
+                        >
+                          {getPaymentButtonLabel(order.payment_method)}
+                        </button>
+                      ) : order.status === "completed" ? (
+                        <button
+                          disabled
+                          className="px-6 py-3 rounded-lg font-semibold text-white bg-white/10 cursor-not-allowed"
+                        >
+                          Payment Done
+                        </button>
+                      ) : null}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -347,7 +428,7 @@ function UserProfile({ user, onSave }: { user: any; onSave: (name: string, image
   return (
     <div className="bg-white/10 rounded-xl p-6 flex items-center gap-6 mb-8">
       <img
-        src={image || "/images/default-avatar.png"}
+        src={image || "/images/logo.png"}
         alt={name}
         className="w-16 h-16 rounded-full object-cover"
       />

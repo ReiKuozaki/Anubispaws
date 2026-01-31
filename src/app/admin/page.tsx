@@ -214,7 +214,7 @@ function PetsManager() {
     name: "",
     species: "dog",
     breed: "",
-    age: "1",
+    age: "",
     gender: "male",
     description: "",
     status: "available",
@@ -560,6 +560,9 @@ function PetsManager() {
 function ProductsManager() {
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editData, setEditData] = useState<any>({});
+
   const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -635,6 +638,48 @@ function ProductsManager() {
       alert("Error adding product");
     }
   };
+const startEdit = (product: any) => {
+  setEditingId(product.id);
+  setEditData({
+    name: product.name,
+    category: product.category,
+    price: product.price,
+    stock: product.stock,
+    weight: product.weight,
+  });
+};
+
+const cancelEdit = () => {
+  setEditingId(null);
+  setEditData({});
+};
+
+const saveEdit = async (id: number) => {
+  try {
+    const token = localStorage.getItem("token");
+    const res = await fetch(`/api/admin/products/${id}`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(editData),
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      alert(err.error || "Failed to update product");
+      return;
+    }
+
+    alert("Product updated successfully");
+    setEditingId(null);
+    fetchProducts();
+  } catch (err) {
+    console.error("Update error:", err);
+    alert("Error updating product");
+  }
+};
 
   const deleteProduct = async (id: number) => {
     if (!confirm("Are you sure you want to delete this product?")) return;
@@ -739,18 +784,18 @@ function ProductsManager() {
               required
             />
           </div>
-              <input
-              type="number"
-              placeholder="Weight (kg)"
-              value={formData.weight}
-              onChange={(e) =>
-                setFormData({ ...formData, weight: e.target.value })
-              }
-              className="p-3 mt-4 rounded bg-white/10 text-white border border-white/20"
-              step="0.01"
-              min="0"
-              required
-            />
+          <input
+            type="number"
+            placeholder="Weight (kg)"
+            value={formData.weight}
+            onChange={(e) =>
+              setFormData({ ...formData, weight: e.target.value })
+            }
+            className="p-3 mt-4 rounded bg-white/10 text-white border border-white/20"
+            step="0.01"
+            min="0"
+            required
+          />
 
           {/* Image URL Input */}
           <input
@@ -763,7 +808,15 @@ function ProductsManager() {
             className="w-full p-3 rounded bg-white/10 text-white border border-white/20 mt-4"
           />
           <p className="text-gray-400 text-sm mt-1">
-            💡 Tip: Upload your image to <a href="https://imgur.com" target="_blank" className="text-blue-400 underline">Imgur</a> or use a direct image URL
+            💡 Tip: Upload your image to{" "}
+            <a
+              href="https://imgur.com"
+              target="_blank"
+              className="text-blue-400 underline"
+            >
+              Imgur
+            </a>{" "}
+            or use a direct image URL
           </p>
 
           <textarea
@@ -820,25 +873,111 @@ function ProductsManager() {
                   )}
                 </td>
                 <td className="px-4 py-3">{product.id}</td>
-                <td className="px-4 py-3">{product.name}</td>
-                <td className="px-4 py-3">{product.category}</td>
-                <td className="px-4 py-3">NPR {product.price}</td>
-                <td className="px-4 py-3">{product.stock}</td>
-                <td className="px-4 py-3">{product.weight}</td>
-                <td className="px-4 py-3 text-center">
-                  <button
-                    onClick={() => deleteProduct(product.id)}
-                    className="px-4 py-2 bg-red-500 hover:bg-red-600 rounded-lg transition"
-                  >
-                    Delete
-                  </button>
+                <td className="px-4 py-3">
+                  {editingId === product.id ? (
+                    <input
+                      value={editData.name}
+                      onChange={(e) =>
+                        setEditData({ ...editData, name: e.target.value })
+                      }
+                      className="p-2 scale-90 rounded bg-white/10 text-white border border-white/20"
+                    />
+                  ) : (
+                    product.name
+                  )}
+                </td>
+
+
+                <td className="px-4 py-3">
+                  {editingId === product.id ? (
+                    <input
+                      value={editData.category}
+                      onChange={(e) =>
+                        setEditData({ ...editData, category: e.target.value })
+                      }
+                      className="p-2 scale-90 rounded bg-white/10 text-white border border-white/20"
+                    />
+                  ) : (
+                    product.category
+                  )}
+                </td>
+                <td className="px-4 py-3">
+                  {editingId === product.id ? (
+                    <input
+                      value={editData.price}
+                      onChange={(e) =>
+                        setEditData({ ...editData, price: e.target.value })
+                      }
+                      className="p-2 scale-90 rounded bg-white/10 text-white border border-white/20"
+                    />
+                  ) : (
+                    product.price
+                  )}
+                </td>
+                <td className="px-4 py-3">
+                  {editingId === product.id ? (
+                    <input
+                      value={editData.stock}
+                      onChange={(e) =>
+                        setEditData({ ...editData, stock: e.target.value })
+                      }
+                      className="p-2 scale-90 rounded bg-white/10 text-white border border-white/20"
+                    />
+                  ) : (
+                    product.stock
+                  )}
+                </td>
+                <td className="px-4 py-3">
+                  {editingId === product.id ? (
+                    <input
+                      value={editData.weight}
+                      onChange={(e) =>
+                        setEditData({ ...editData, weight: e.target.value })
+                      }
+                      className="p-1 scale-90 rounded bg-white/10 text-white border border-white/20"
+                    />
+                  ) : (
+                    product.weight
+                  )}
+                </td>
+                <td className="px-2 py-2 text-center space-x-2">
+                  {editingId === product.id ? (
+                    <>
+                      <button
+                        onClick={() => saveEdit(product.id)}
+                        className="px-3 py-2 bg-green-500 hover:bg-green-600 rounded-lg"
+                      >
+                        Save
+                      </button>
+                      <button
+                        onClick={cancelEdit}
+                        className="px-3 py-2 bg-gray-500 hover:bg-gray-600 rounded-lg"
+                      >
+                        Cancel
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => startEdit(product)}
+                        className="px-3 py-2 bg-blue-500 hover:bg-blue-600 rounded-lg"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => deleteProduct(product.id)}
+                        className="px-3 py-2 bg-red-500 hover:bg-red-600 rounded-lg"
+                      >
+                        Delete
+                      </button>
+                    </>
+                  )}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      
     </div>
   );
 }
@@ -855,6 +994,9 @@ function OrdersManager() {
   const [appliedEmail, setAppliedEmail] = useState("");
   const [appliedFromDate, setAppliedFromDate] = useState("");
   const [appliedToDate, setAppliedToDate] = useState("");
+const [statusFilter, setStatusFilter] = useState<
+  "all" | "pending" | "processing" | "completed" | "cancelled"
+>("all");
 
 
 
@@ -880,7 +1022,8 @@ const filteredOrders = orders.filter((order) => {
   const emailActive = appliedEmail.trim() !== "";
   const fromActive = appliedFromDate !== "";
   const toActive = appliedToDate !== "";
-
+  
+  
   // Email match
     const emailMatch =
       !emailActive ||
@@ -895,8 +1038,11 @@ const filteredOrders = orders.filter((order) => {
 
   const fromMatch = !fromActive || orderDate >= appliedFromDate;
   const toMatch = !toActive || orderDate <= appliedToDate;
+ const statusMatch =
+    statusFilter === "all" || order.status === statusFilter;
 
-  return emailMatch && fromMatch && toMatch;
+  // ✅ ALL conditions must pass
+  return emailMatch && fromMatch && toMatch && statusMatch;
 });
 
 
@@ -1055,6 +1201,24 @@ const setOrderPending = async (id: number) => {
   >
     Reset
   </button>
+   <div>
+    <label className="block text-sm text-gray-300 mb-1">Order Status</label>
+   
+  <select
+  
+    value={statusFilter}
+    onChange={(e) =>
+      setStatusFilter(e.target.value as typeof statusFilter)
+    }
+    className="px-4 py-2 rounded-lg  text-black border border-white/20"
+  >
+    <option value="all">All</option>
+    <option value="pending">Pending</option>
+    <option value="processing">Processing</option>
+    <option value="completed">Completed</option>
+    <option value="cancelled">Cancelled</option>
+  </select>
+  </div>
 </div>
 
 

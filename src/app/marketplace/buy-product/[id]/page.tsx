@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useUser } from "@/app/Context/UserContext";
 import { useParams, useRouter } from "next/navigation";
-
+import BlurryBlob from "@/components/background/blurry-blob"; // adjust path
 interface Product {
   id: number;
   name: string;
@@ -33,7 +33,7 @@ export default function BuyProductPage() {
     email:"",
     shipping_address: "",
     contact_phone: "",
-    payment_method: "cash_on_delivery",
+    payment_method: "",
   });
 useEffect(() => {
   if (!productId) return;
@@ -75,13 +75,13 @@ useEffect(() => {
       },
       body: JSON.stringify({
         pets: [],
-        products: [{ id: productId, quantity: 1 }],
+        products: [{ id: productId, quantity }],
         customer_name: customerName,
         customer_email: customerEmail,
         contact_phone: formData.contact_phone,
 
       shipping_address: formData.shipping_address,
-        payment_method: "Cash on Delivery", // or from user input
+        payment_method: formData.payment_method.toLowerCase(),
       }),
     });
 
@@ -121,7 +121,9 @@ useEffect(() => {
   const Weighttotal = product.weight * quantity;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 pt-32 px-4 pb-16">
+
+    <div className="min-h-screen pt-32 px-4 pb-16">
+      
       <div className="max-w-5xl mx-auto">
         <h1 className="text-4xl font-bold text-white text-center mb-8">
           Purchase {product.name}
@@ -166,7 +168,7 @@ useEffect(() => {
             className="bg-white/10 rounded-xl p-6 space-y-4"
           >
             <h3 className="text-2xl font-bold text-white mb-4">Order Details</h3>
-
+              <p>Please enter the following details correctly:</p>
           <div className="space-y-4 mb-6">
             <input
               type="text"
@@ -230,8 +232,7 @@ useEffect(() => {
                 className="w-full p-3 bg-white/10 text-black rounded border border-white/30"
               >
                 <option value="cash_on_delivery">Cash on Delivery</option>
-                <option value="bank_transfer">Bank Transfer</option>
-                <option value="esewa">eSewa</option>
+                {/* <option value="esewa">eSewa</option> */}
                 <option value="khalti">Khalti</option>
               </select>
             </div>
@@ -258,6 +259,14 @@ useEffect(() => {
           </form>
         </div>
       </div>
+<div className="absolute -top-30 left-1/2 -translate-x-1/2 z-0">
+        <BlurryBlob
+          className="animate-pop-blob"
+          firstBlobColor="bg-gray-400"
+          secondBlobColor="bg-purple-400"
+        />
+      </div>
     </div>
+
   );
 }

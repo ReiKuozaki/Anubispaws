@@ -4,6 +4,7 @@ import { ReactNode, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";  // ✅ Correct import for app directory
 import { useUser } from "@/app/Context/UserContext";
 import { Spotlight } from "@/components/ui/spolight-new";
+import BlurryBlob from "@/components/background/blurry-blob";
 
 
 interface Pet {
@@ -52,6 +53,13 @@ export default function AdoptionPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center pt-32">  
+              <div className="absolute -top-30 left-1/2 -translate-x-1/2 z-0">
+                      <BlurryBlob
+                        className="animate-pop-blob"
+                        firstBlobColor="bg-red-400"
+                        secondBlobColor="bg-purple-400"
+                      />
+                    </div>
         <div className="text-white text-2xl">Loading pets...</div>
       </div>
     );

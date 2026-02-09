@@ -2,6 +2,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { LightRays } from "@/components/ui/light-rays"
+import BlurryBlob from "@/components/background/blurry-blob"; 
+
 
 
 export default function AdminPage() {
@@ -44,7 +46,14 @@ export default function AdminPage() {
   }, [router]);
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
+      <div className="min-h-screen flex items-center justify-center to-gray-900">
+        <div className="absolute -top-30 left-1/2 -translate-x-1/2 z-0">
+                <BlurryBlob
+                  className="animate-pop-blob"
+                  firstBlobColor="bg-red-400"
+                  secondBlobColor="bg-purple-400"
+                />
+              </div>
         <div className="text-white text-2xl">Loading Admin Panel...</div>
       </div>
     );
@@ -209,6 +218,8 @@ function UsersManager() {
 function PetsManager() {
   const [pets, setPets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingPetId, setEditingPetId] = useState<number | null>(null);
+  const [editForm, setEditForm] = useState<any>({});
   const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -291,6 +302,51 @@ function PetsManager() {
       alert("Error adding pet");
     }
   };
+const startEdit = (pet: any) => {
+  setEditingPetId(pet.id);
+  setEditForm({ ...pet });
+};
+
+const cancelEdit = () => {
+  setEditingPetId(null);
+  setEditForm({});
+};
+
+const savePet = async (id: number) => {
+  try {
+    const token = localStorage.getItem("token");
+    const res = await fetch(`/api/admin/pets/${id}`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name: editForm.name,
+        species: editForm.species,
+        breed: editForm.breed,
+        age: Number(editForm.age),
+        gender: editForm.gender,
+        status: editForm.status,
+        price: Number(editForm.price),
+        image_url: editForm.image_url,
+        description: editForm.description,
+      }),
+    });
+
+    if (res.ok) {
+      alert("Pet updated successfully");
+      setEditingPetId(null);
+      fetchPets();
+    } else {
+      const err = await res.json();
+      alert(err.error || "Failed to update pet");
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Update failed");
+  }
+};
 
   const deletePet = async (id: number) => {
     if (!confirm("Are you sure you want to delete this pet listing?")) return;
@@ -522,11 +578,73 @@ function PetsManager() {
                   )}
                 </td>
                 <td className="px-4 py-3">{pet.id}</td>
-                <td className="px-4 py-3">{pet.name}</td>
-                <td className="px-4 py-3">{pet.species}</td>
-                <td className="px-4 py-3">{pet.breed}</td>
-                <td className="px-4 py-3">{pet.age}</td>
-                <td className="px-4 py-3">{pet.price}</td>
+                <td className="px-4 py-3">
+                  {editingPetId === pet.id ? (
+                    <input
+                      value={editForm.name}
+                      onChange={(e) =>
+                        setEditForm({ ...editForm, name: e.target.value })
+                      }
+                      className="bg-black/40 border px-2 py-1 rounded"
+                    />
+                  ) : (
+                    pet.name
+                  )}
+                </td>
+                <td className="px-4 py-3">
+                  {editingPetId === pet.id ? (
+                    <input
+                      value={editForm.species}
+                      onChange={(e) =>
+                        setEditForm({ ...editForm, species: e.target.value })
+                      }
+                      className="bg-black/40 border px-2 py-1 rounded"
+                    />
+                  ) : (
+                    pet.species
+                  )}
+                </td>
+
+                <td className="px-4 py-3">
+                  {editingPetId === pet.id ? (
+                    <input
+                      value={editForm.breed}
+                      onChange={(e) =>
+                        setEditForm({ ...editForm, breed: e.target.value })
+                      }
+                      className="bg-black/40 border px-2 py-1 rounded"
+                    />
+                  ) : (
+                    pet.breed
+                  )}
+                </td>
+                <td className="px-4 py-3">
+                  {editingPetId === pet.id ? (
+                    <input
+                      value={editForm.age}
+                      onChange={(e) =>
+                        setEditForm({ ...editForm, age: e.target.value })
+                      }
+                      className="bg-black/40 border px-2 py-1 rounded"
+                    />
+                  ) : (
+                    pet.age
+                  )}
+                </td>
+                <td className="px-4 py-3">
+                  {editingPetId === pet.id ? (
+                    <input
+                      value={editForm.price}
+                      onChange={(e) =>
+                        setEditForm({ ...editForm, price: e.target.value })
+                      }
+                      className="bg-black/40 border px-2 py-1 rounded"
+                    />
+                  ) : (
+                    pet.price
+                  )}
+                </td>
+
                 <td className="px-4 py-3">
                   <span
                     className={`px-2 py-1 rounded text-sm ${
@@ -539,12 +657,37 @@ function PetsManager() {
                   </span>
                 </td>
                 <td className="px-4 py-3 text-center">
-                  <button
-                    onClick={() => deletePet(pet.id)}
-                    className="px-4 py-2 bg-red-500 hover:bg-red-600 rounded-lg transition"
-                  >
-                    Delete
-                  </button>
+                  {editingPetId === pet.id ? (
+                    <>
+                      <button
+                        onClick={() => savePet(pet.id)}
+                        className="px-3 py-2 bg-green-500 rounded-lg mr-2"
+                      >
+                        Save
+                      </button>
+                      <button
+                        onClick={cancelEdit}
+                        className="px-3 py-2 bg-gray-500 rounded-lg"
+                      >
+                        Cancel
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => startEdit(pet)}
+                        className="px-3 py-2 bg-blue-500 rounded-lg mr-2"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => deletePet(pet.id)}
+                        className="px-3 py-2 bg-red-500 rounded-lg"
+                      >
+                        Delete
+                      </button>
+                    </>
+                  )}
                 </td>
               </tr>
             ))}

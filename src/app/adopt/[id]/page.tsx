@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams} from "next/navigation";
 import { useUser } from "@/app/Context/UserContext";
-
+import BlurryBlob from "@/components/background/blurry-blob"; 
+import { LightRays } from "@/components/ui/light-rays"
 interface Pet {
   price: any;
   id: number;
@@ -17,18 +18,13 @@ interface Pet {
   image_url?: string;
 }
 
-export default function AdoptPetPage({
-  params,
-}: {
-  params: { id: string };
-}) 
-  
- {
+export default function AdoptPetPage() {
   const router = useRouter();
   const { user } = useUser();
 
-  // ✅ REQUIRED in Next.js 16
-  const petId = params.id;
+
+const params = useParams();
+const petId = params.id as string;
 
   const [pet, setPet] = useState<Pet | null>(null);
   const [loading, setLoading] = useState(true);
@@ -86,7 +82,7 @@ const handleSubmit = async (e: React.FormEvent) => {
 
   try {
     const token = localStorage.getItem("token");
-    if (!token) throw new Error("Not authenticated");
+    if (!token) throw new Error("Login to proceed with adoption");
 
     const res = await fetch("/api/user/orders", {
       method: "POST",
@@ -130,6 +126,13 @@ const handleSubmit = async (e: React.FormEvent) => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center text-white">
+        <div className="absolute -top-30 left-1/2 -translate-x-1/2 z-0">
+                <BlurryBlob
+                  className="animate-pop-blob"
+                  firstBlobColor="bg-red-400"
+                  secondBlobColor="bg-purple-400"
+                />
+              </div>
         Loading...
       </div>
     );
@@ -138,7 +141,7 @@ const handleSubmit = async (e: React.FormEvent) => {
   if (!pet) return null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 pt-32 px-4">
+    <div className="min-h-screen pt-32 px-4">
       <div className="max-w-5xl mx-auto">
         <h1 className="text-4xl font-bold text-white text-center mb-8">
           Adopt {pet.name}
@@ -246,6 +249,7 @@ const handleSubmit = async (e: React.FormEvent) => {
           </form>
         </div>
       </div>
+            <LightRays />
     </div>
   );
 }

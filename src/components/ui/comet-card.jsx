@@ -7,7 +7,7 @@ import PropTypes from "prop-types";
 
 export const CometCard = ({
   rotateDepth = 17.5,
-  translateDepth = 20,
+  translateDepth = 10,
   className = "",
   children,
 }) => {

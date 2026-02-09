@@ -21,9 +21,67 @@ function verifyAdmin(req: NextRequest) {
   }
 }
 
+/* =========================
+   PATCH → UPDATE PRODUCT
+   ========================= */
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const admin = verifyAdmin(req);
+  if (!admin) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    const productId = Number(params.id);
+    const body = await req.json();
+
+    const {
+      name,
+      category,
+      price,
+      stock,
+      weight,
+    } = body;
+
+    const [result]: any = await pool.execute(
+      `
+      UPDATE products
+      SET
+        name = ?,
+        category = ?,
+        price = ?,
+        stock = ?,
+        weight = ?
+      WHERE id = ?
+      `,
+      [name, category, price, stock, weight, productId]
+    );
+
+    if (result.affectedRows === 0) {
+      return NextResponse.json(
+        { error: "Product not found" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (err: any) {
+    console.error("❌ Product update failed:", err.message);
+    return NextResponse.json(
+      { error: "Failed to update product" },
+      { status: 500 }
+    );
+  }
+}
+
+/* =========================
+   DELETE → KEEP AS-IS
+   ========================= */
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }  // ✅ params is a Promise
+  { params }: { params: Promise<{ id: string }> }
 ) {
   console.log("🗑️ Admin Products DELETE called");
 
@@ -34,7 +92,7 @@ export async function DELETE(
   }
 
   try {
-    const { id } = await params;  // ✅ Await params first
+    const { id } = await params; // IMPORTANT
     const productId = Number(id);
     console.log("🗑️ Deleting product ID:", productId);
 

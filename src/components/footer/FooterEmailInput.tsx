@@ -36,7 +36,7 @@ export default function FooterEmailInput() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20 }}
               transition={{ type: "spring", stiffness: 300, damping: 25 }}
-              className="absolute right-0 px-4 py-2 rounded-r-lg bg-black-500 text-white font-semibold hover:bg-gray-600"
+              className="absolute right-0 px-4 duration-300 py-2 rounded-r-lg bg-black-500 text-white font-semibold hover:bg-gray-600"
             >
               Send
             </motion.button>

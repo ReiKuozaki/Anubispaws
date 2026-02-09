@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import BlurryBlob from "@/components/background/blurry-blob"; 
 
 export default function PaymentSuccessPage() {
   const router = useRouter();
@@ -35,8 +36,15 @@ export default function PaymentSuccessPage() {
   }, [router]);
 
   return (
-    <div className="text-white text-center mt-32">
-      Verifying your payment, please wait...
-    </div>
+    <div className="min-h-screen flex items-center justify-center pt-32">
+            <div className="absolute -top-30 left-1/2 -translate-x-1/2 z-0">
+                    <BlurryBlob
+                      className="animate-pop-blob"
+                      firstBlobColor="bg-red-400"
+                      secondBlobColor="bg-purple-400"
+                    />
+                  </div>
+            <div className="text-white text-2xl">Verifying your payment! Please wait...</div>
+          </div>
   );
 }

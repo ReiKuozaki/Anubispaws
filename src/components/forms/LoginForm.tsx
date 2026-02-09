@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import GoogleButton from "../forms/GoogleButton";
+
 import { useRouter } from "next/navigation";
 import { useUser } from "@/app/Context/UserContext";
 
@@ -72,7 +72,13 @@ export const LoginForm = () => {
         {loading ? "Logging in..." : "Login"}
       </button>
       <div className="w-full text-center">OR</div>
-      <GoogleButton />
+      <button
+        type="button"
+        onClick={() => router.push("/forgot-password")}
+        className="text-sm text-white underline text-center w-full"
+      >
+        Forgot password?
+      </button>
     </form>
   );
 };

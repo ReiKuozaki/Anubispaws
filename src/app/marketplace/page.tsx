@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useUser } from "@/app/Context/UserContext";
 import { Spotlight } from "@/components/ui/spolight-new";
 import { useRouter } from "next/navigation";
+import BlurryBlob from "@/components/background/blurry-blob"; 
 
 // Inside component:
 
@@ -51,7 +52,14 @@ export default function MarketplacePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-900 flex items-center justify-center pt-32">
+      <div className="min-h-screen flex items-center justify-center pt-32">
+        <div className="absolute -top-30 left-1/2 -translate-x-1/2 z-0">
+                <BlurryBlob
+                  className="animate-pop-blob"
+                  firstBlobColor="bg-red-400"
+                  secondBlobColor="bg-purple-400"
+                />
+              </div>
         <div className="text-white text-2xl">Loading products...</div>
       </div>
     );

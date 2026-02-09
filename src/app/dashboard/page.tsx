@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { getOrderItemName } from "@/lib/orders/getOrderItemName";
 import { normalizePaymentPayload } from "@/lib/payments/createpayments";
 import { GravityStarsBackground } from '@/components/background/gravity-stars';
+import BlurryBlob from "@/components/background/blurry-blob"; 
 
 interface PetOrder {
   id: number;
@@ -18,7 +19,9 @@ interface PetOrder {
   age?: number;
   gender?: string;
 }
-
+interface PaymentDetails {
+  khalti_transaction_id?: string;
+}
 interface ProductOrder {
   id: number;
   name: string;
@@ -41,6 +44,7 @@ interface Order {
   customer_name: string;
   customer_email?: string;
   contact_phone: string;
+  khalti_transaction_id?: PaymentDetails["khalti_transaction_id"];
 }
 
 export default function DashboardPage() {
@@ -198,7 +202,16 @@ async function handleOnlinePayment(
 
   if (loading)
     return (
-      <div className="text-white text-center mt-32">Loading orders...</div>
+       <div className="min-h-screen flex items-center justify-center pt-32">
+         <div className="absolute -top-30 left-1/2 -translate-x-1/2 z-0">
+                 <BlurryBlob
+                   className="animate-pop-blob"
+                   firstBlobColor="bg-red-400"
+                   secondBlobColor="bg-purple-400"
+                 />
+               </div>
+         <div className="text-white text-2xl">Loading orders...</div>
+       </div>
     );
 
   return (
@@ -239,6 +252,9 @@ async function handleOnlinePayment(
                     </h3>
                     <h3 className="text-xl text-white font-semibold">
                       📞 Contact Phone: {order.contact_phone}
+                    </h3>
+                    <h3 className="text-gray-400 text-sm mt-1">
+                      🛒 Tranaction ID: {order.khalti_transaction_id}
                     </h3>
                     <p className="text-gray-400 text-sm mt-1">
                       {new Date(order.created_at).toLocaleDateString("en-US", {

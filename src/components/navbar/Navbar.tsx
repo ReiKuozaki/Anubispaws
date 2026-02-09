@@ -17,7 +17,7 @@ export default function Navbar() {
   };
 
   return (
-    <header className="mt-6 flex justify-center relative z-50">
+    <header className=" flex justify-center relative z-50">
       <nav className="fixed top-6 left-1/2 -translate-x-1/2 bg-gray-900 text-gray-300 px-6 md:px-10 py-3 rounded-full shadow-lg flex gap-8 items-center max-w-7xl">
         {/* Logo */}
         <div className="w-[50px] h-[50px] flex-shrink-0">
@@ -38,7 +38,6 @@ export default function Navbar() {
             ["Adoption", "/adoption"],
             ["Marketplace", "/marketplace"],
             ["About", "/about"],
-            ["Contact", "/contact"],
           ].map(([label, href]) => (
             <Link
               key={label}

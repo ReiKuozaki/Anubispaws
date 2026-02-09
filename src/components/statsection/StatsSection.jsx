@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { CometCard } from "../ui/comet-card";
 
 // CountUp hook, but only starts when `start` is true
-function useCountUp(target, duration = 2000, start = false) {
+function useCountUp(target, duration = 200, start = false) {
   const [count, setCount] = useState(0);
 
   useEffect(() => {
@@ -31,7 +31,7 @@ function useCountUp(target, duration = 2000, start = false) {
 export default function StatsSection() {
   const stats = [
     {
-      title: "Pets Sold",
+      title: "Total sold",
       value: 12438,
       image:
         "https://images.unsplash.com/photo-1574158622682-e40e69881006?q=80&w=1280&auto=format&fit=crop",
@@ -43,7 +43,7 @@ export default function StatsSection() {
         "https://images.unsplash.com/photo-1599194921977-f89d8bd0eefb?q=80&w=415&auto=format&fit=crop",
     },
     {
-      title: "Products Sold",
+      title: "Products in Marketplace",
       value: 24315,
       image:
         "https://www.farmerpetes.com.au/cdn/shop/articles/eco-friendly_dog_products.png?v=1736184725=format&fit=crop",

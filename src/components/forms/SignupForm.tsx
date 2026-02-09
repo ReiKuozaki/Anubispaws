@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import { PasswordStrength } from "./PasswordStrength";
-import GoogleButton from "../forms/GoogleButton";
 import { useRouter } from "next/navigation";
 
 export const SignupForm = () => {
@@ -28,8 +27,8 @@ export const SignupForm = () => {
       const data = await res.json();
 
       if (data.success) {
-        alert("Signup successful! Redirecting to home...");
-        router.push("/"); // redirect right after signup
+        alert("Signup successful! Redirecting to login...");
+        router.push("/auth?tab=login"); // redirect right after signup
       } else {
         alert(data.error || "Signup failed");
       }
@@ -87,10 +86,6 @@ export const SignupForm = () => {
       >
         {submitting ? "Signing up..." : "Sign Up"}
       </button>
-
-      <div className="w-full text-center">OR</div>
-
-      <GoogleButton />
     </form>
   );
 };

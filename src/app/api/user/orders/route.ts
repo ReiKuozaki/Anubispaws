@@ -39,6 +39,7 @@ const detailedOrders = await Promise.all(
 
     let pets: [] = [];
     let products: [] = [];
+    let payment: any = null;
 
     // Fetch pets details
     if (petItems.length > 0) {
@@ -83,11 +84,32 @@ const detailedOrders = await Promise.all(
         };
       });
     }
+      /* ───── PAYMENT (IMPORTANT PART) ───── */
+        const [paymentRows]: any = await pool.execute(
+          `
+          SELECT
+            payment_method,
+            payment_status,
+            khalti_transaction_id,
+            khalti_pidx,
+            esewa_transaction_uuid,
+            esewa_ref_id
+          FROM payments
+          WHERE order_id = ?
+          ORDER BY created_at DESC
+          LIMIT 1
+          `,
+          [order.id]
+        );
+
+        payment = paymentRows?.[0] || null;
+    
 
     return {
       ...order,
       order_pets: pets,
       order_products: products,
+       khalti_transaction_id: payment?.khalti_transaction_id ?? null,
     };
   })
 );

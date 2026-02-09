@@ -65,7 +65,7 @@ useEffect(() => {
 
   try {
     const token = localStorage.getItem("token");
-    if (!token) throw new Error("Not authenticated");
+    if (!token) throw new Error("Login to proceed with purchase");
 
     const res = await fetch("/api/user/orders", {
       method: "POST",
@@ -104,6 +104,13 @@ useEffect(() => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center text-white">
+        <div className="absolute -top-30 left-1/2 -translate-x-1/2 z-0">
+                <BlurryBlob
+                  className="animate-pop-blob"
+                  firstBlobColor="bg-red-400"
+                  secondBlobColor="bg-purple-400"
+                />
+              </div>
         Loading product...
       </div>
     );

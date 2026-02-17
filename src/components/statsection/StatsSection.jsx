@@ -34,19 +34,19 @@ export default function StatsSection() {
       title: "Total sold",
       value: 12438,
       image:
-        "https://images.unsplash.com/photo-1574158622682-e40e69881006?q=80&w=1280&auto=format&fit=crop",
+        "/images/cat4.png",
     },
     {
       title: "Pets in Marketplace",
       value: 7920,
       image:
-        "https://images.unsplash.com/photo-1599194921977-f89d8bd0eefb?q=80&w=415&auto=format&fit=crop",
+        "/images/catdog.png",
     },
     {
       title: "Products in Marketplace",
       value: 24315,
       image:
-        "https://www.farmerpetes.com.au/cdn/shop/articles/eco-friendly_dog_products.png?v=1736184725=format&fit=crop",
+        "/images/products.png",
     },
   ];
 

@@ -11,10 +11,14 @@ export const metadata = {
   description: "Your pet marketplace and adoption platform",
 };
 
+// src/app/layout.tsx
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
-      <body className={`${inter.className} text-white`}>
+    <html lang="en" suppressHydrationWarning>
+      <body 
+        className={`${inter.className} text-white`} 
+        suppressHydrationWarning
+      >
         <UserProvider>
           <ClientLayout>{children}</ClientLayout>
         </UserProvider>

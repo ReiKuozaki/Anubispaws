@@ -1,4 +1,4 @@
-Anubis Paws is for your pet health care site where you can appoint for health, Buy pets, Order product.
+Anubis Paws is for your pet health care site where you can Buy pets, Order product and pay online (This project is only avaiable at Nepal).
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started

@@ -230,15 +230,6 @@ const handleSubmit = async (e: React.FormEvent) => {
                 <option value="khalti">Khalti</option>
               </select>
             </div>
-            <textarea
-              required
-              placeholder="Why this pet?"
-              className="w-full p-3 bg-white/10 text-white rounded"
-              value={formData.reason}
-              onChange={(e) =>
-                setFormData({ ...formData, reason: e.target.value })
-              }
-            />
 
             <button
               disabled={submitting}

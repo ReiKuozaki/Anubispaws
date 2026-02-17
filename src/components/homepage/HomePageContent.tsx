@@ -53,7 +53,7 @@ export default function HomePageContent() {
       {/* Hero Section */}
 <motion.section
   style={{ opacity: fadeOut, y: moveUp }}
-  className="relative w-screen h-screen -mt-11 flex flex-col items-center justify-center overflow-hidden bg-gray-950"
+  className="relative w-screen h-screen -mt-11 flex flex-col items-center justify-center overflow-hidden "
 >
   {/* Vortex Background */}
   <div className="absolute inset-0 flex items-center justify-center z-0">
@@ -175,11 +175,11 @@ export default function HomePageContent() {
               type="content"
             />
             <CaseStudyCard
-              title="Learn about Pets Features"
-              category="Charactiestics"
+              title="Login now to explore more!"
+              category="Get Started"
               image="/images/dog2.png"
               logo="/images/logo.png"
-              link="/features"
+              link="/auth?tab=login"
               type="content"
             />
           </motion.div>

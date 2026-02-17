@@ -164,8 +164,8 @@ export async function POST(req: NextRequest) {
         orderId: order.id,
         phone: order.contact_phone,
         items: [
-          ...pets.map(p => `Pet Adoption: ${p.name}`),
-          ...products.map(p => `Product: ${p.name} × ${p.quantity}`),
+          ...pets.map(p => `Pet Adoption: ${p.id}`),
+          ...products.map(p => `Product: ${p.id} × ${p.quantity}`),
         ],
         total: order.total_amount,
       }),

@@ -1371,10 +1371,10 @@ const setOrderPending = async (id: number) => {
             <tr>
               <th className="px-4 py-3 text-left">Order ID</th>
               <th className="px-4 py-3 text-left">User_ID</th>
-              {/* <th className="px-4 py-3 text-left">User</th> */}
               <th className="px-4 py-3 text-left">Name</th>
               <th className="px-4 py-3 text-left">Customer email</th>
               <th className="px-4 py-3 text-left">Contact</th>
+              <th className="px-4 py-2 text-left">Payment_method</th>
               <th className="px-4 py-3 text-left">Total</th>
               <th className="px-4 py-3 text-left">Status</th>
               <th className="px-4 py-3 text-left">Date</th>
@@ -1389,10 +1389,10 @@ const setOrderPending = async (id: number) => {
               >
                 <td className="px-4 py-3">#{order.id}</td>
                 <td className="px-4 py-3">{order.user_id}</td>
-                {/* <td className="px-4 py-3">{order.user_email || "Unknown"}</td> */}
                 <td className="px-4 py-3">{order.customer_name}</td>
                 <td className="px-4 py-3">{order.customer_email || "Unknown"}</td>
                 <td className="px-4 py-3">{order.contact_phone}</td>
+                <td className="px-4 py-3 capitalize">{order.payment_method}</td>
                 <td className="px-4 py-3 font-semibold">
                   NPR {order.total_amount}
                 </td>

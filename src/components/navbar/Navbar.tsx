@@ -34,10 +34,8 @@ export default function Navbar() {
         <div className="hidden md:flex gap-8">
           {[
             ["Home", "/"],
-            ["Features", "/features"],
             ["Adoption", "/adoption"],
             ["Marketplace", "/marketplace"],
-            ["About", "/about"],
           ].map(([label, href]) => (
             <Link
               key={label}
